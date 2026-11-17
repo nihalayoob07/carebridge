@@ -11,7 +11,7 @@ import { Icon } from "@/components/icon";
 const APK_URL = process.env.EXPO_PUBLIC_APK_URL;
 const HERO = require("../../assets/images/hero.webp");
 const CARE = require("../../assets/images/care.jpg");
-const FAMILY = require("../../assets/images/family.jpg");
+const FAMILY = require("../../assets/images/family-wide.jpg");
 
 export default function Index() {
   const { session, profile, loading } = useAuth();
@@ -42,8 +42,36 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   const wide = width >= 1024;
   const mid = width >= 768;
   const pad = mid ? 48 : 16;
-  const huge = wide ? Math.min(width * 0.15, 200) : mid ? 128 : Math.max(width * 0.19, 60);
+  const huge = wide ? Math.min(width * 0.15, 200) : mid ? 128 : Math.max(width * 0.23, 64);
   const go = () => router.push((signedIn ? home : "/login") as any);
+
+  const heroText = (
+            <Reveal style={{ width: wide ? 290 : "100%", gap: 18, zIndex: 3 }}>
+              <Eyebrow>Elder care, India</Eyebrow>
+              <T role="heading" style={{ fontFamily: F.regular, fontSize: wide ? 48 : 40, lineHeight: wide ? 52 : 44, color: C.ink, letterSpacing: -1.6 }}>
+                Trusted{"\n"}Elder Care
+              </T>
+              <T style={{ fontSize: 18, lineHeight: 27, color: C.muted, maxWidth: 420 }}>
+                Verified caregivers and nurses for the people who raised you, with every visit shared live.
+              </T>
+              <Button title="Get Started" onPress={go} />
+            </Reveal>
+  );
+  const heroVisual = (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", minHeight: wide ? 600 : undefined, paddingBottom: wide ? 0 : 8 }}>
+              <Reveal delay={120} style={{ alignItems: "center" }}>
+                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                  {["CARE THAT", "COMES", "HOME"].map((w) => (
+                    <Text key={w} style={{ fontFamily: F.display, fontSize: huge, lineHeight: huge * 0.96, color: C.sage, textAlign: "center", letterSpacing: -1 }}>{w}</Text>
+                  ))}
+                </View>
+              </Reveal>
+              <Reveal delay={260} style={{ position: "absolute", bottom: wide ? 0 : -8, alignItems: "center" }}>
+                <Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
+                  style={{ width: huge * 1.75, height: huge * 1.75 * (858 / 654) }} resizeMode="contain" />
+              </Reveal>
+            </View>
+  );
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ minHeight: "100%" }}>
@@ -81,32 +109,10 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
       {/* hero */}
       <View style={{ paddingHorizontal: pad, paddingTop: mid ? 40 : 28, paddingBottom: mid ? 40 : 24, alignItems: "center" }}>
         <View style={{ width: "100%", maxWidth: 1280, flexDirection: wide ? "row" : "column", alignItems: wide ? "center" : "stretch", gap: wide ? 16 : 28 }}>
-          <Reveal style={{ width: wide ? 290 : "100%", gap: 18, zIndex: 3 }}>
-            <Eyebrow>Elder care, India</Eyebrow>
-            <T role="heading" style={{ fontFamily: F.regular, fontSize: wide ? 48 : 40, lineHeight: wide ? 52 : 44, color: C.ink, letterSpacing: -1.6 }}>
-              Trusted{"\n"}Elder Care
-            </T>
-            <T style={{ fontSize: 18, lineHeight: 27, color: C.muted, maxWidth: 420 }}>
-              Verified caregivers and nurses for the people who raised you, with every visit shared live.
-            </T>
-            <Button title="Get Started" onPress={go} />
-          </Reveal>
+          {wide ? heroText : heroVisual}
+          {wide ? heroVisual : heroText}
 
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", minHeight: wide ? 600 : undefined }}>
-            <Reveal delay={120} style={{ alignItems: "center" }}>
-              <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-                {["CARE THAT", "COMES", "HOME"].map((w) => (
-                  <Text key={w} style={{ fontFamily: F.display, fontSize: huge, lineHeight: huge * 0.96, color: C.sage, textAlign: "center", letterSpacing: -1 }}>{w}</Text>
-                ))}
-              </View>
-            </Reveal>
-            <Reveal delay={260} style={{ position: "absolute", bottom: wide ? 0 : -8, alignItems: "center" }}>
-              <Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
-                style={{ width: huge * 1.75, height: huge * 1.75 * (858 / 654) }} resizeMode="contain" />
-            </Reveal>
-          </View>
-
-          <Reveal delay={200} style={{ width: wide ? 210 : "100%", flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : huge * 1.2 }}>
+          <Reveal delay={200} style={{ width: wide ? 210 : "100%", flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : 4 }}>
             {PILLARS.map((p, i) => (
               <View key={p.a} style={{ flexDirection: wide ? "row" : "column", alignItems: "center", gap: 14, paddingVertical: 20,
                 borderTopWidth: wide && i ? 1 : 0, borderColor: C.line, flex: wide ? undefined : 1 }}>
@@ -204,10 +210,10 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
       {/* family story: image + quote */}
       <View style={{ paddingHorizontal: pad, paddingBottom: mid ? 112 : 64, alignItems: "center" }}>
         <View style={{ width: "100%", maxWidth: 1280, flexDirection: mid ? "row" : "column", gap: mid ? 56 : 24, alignItems: "center" }}>
-          <Reveal style={{ width: mid ? "42%" : "100%" }}>
+          <Reveal style={{ width: mid ? 420 : "100%", maxWidth: "100%" }}>
             <Bezel>
               <Image source={FAMILY} accessibilityLabel="A daughter living abroad reading an update about her mother on her phone"
-                style={{ width: "100%", aspectRatio: mid ? 4 / 5 : 4 / 3, borderRadius: 26 }} resizeMode="cover" />
+                style={{ width: "100%", height: mid ? 262 : 210, borderRadius: 26 }} resizeMode="cover" />
             </Bezel>
           </Reveal>
           <Reveal delay={120} style={{ flex: 1, gap: 24 }}>
