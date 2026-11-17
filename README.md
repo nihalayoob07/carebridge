@@ -50,5 +50,6 @@ npm run build:web       # static web build into dist/
 ```
 
 ## Deploy
+- Live: https://carebridge-two-swart.vercel.app
 - Web: `vercel deploy --prod` (vercel.json builds `dist/` and rewrites routes to the SPA)
 - Android: `npx eas-cli@latest build -p android --profile preview` produces an installable APK
