@@ -25,9 +25,10 @@ Rank the best 5 for this patient. Return {"matches":[{"id": string, "score": 0-1
     const matches = (ranked.matches ?? []).filter((m: any) => byId.has(m.id))
       .map((m: any) => ({ ...(byId.get(m.id) as object), score: m.score, reason: m.reason }));
     return json({ matches, ai: true });
-  } catch {
+  } catch (e) {
     // AI unavailable: fall back to the SQL ranking.
+    console.error("match ai fallback", e);
     return json({ matches: candidates.slice(0, 5).map((c: any) => ({ ...c, score: null,
-      reason: c.overlap ? `Covers ${c.overlap} of ${patient.name.split(" ")[0]}'s care needs` : "Verified caregiver nearby" })), ai: false });
+      reason: c.overlap ? `Covers ${c.overlap} of ${patient.name.split(" ")[0]}'s care needs` : "Verified caregiver nearby" })), ai: false, ai_error: String((e as Error).message).slice(0, 300) });
   }
 });

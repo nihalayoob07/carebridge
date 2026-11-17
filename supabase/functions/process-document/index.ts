@@ -13,7 +13,7 @@ const SCHEMA = `Return ONLY a JSON object with these keys:
  "summary_plain_english": string,  // 2-4 short sentences a worried family member can understand, no jargon
  "caregiver_notes": string[]       // practical do/don't instructions for a home caregiver
 }
-Use [] when something is not present. Never invent values that are not in the document.`;
+Use [] when something is not present. Never invent values that are not in the document. Do not use em dashes.`;
 
 const SYSTEM = "You are a careful medical records assistant for an elderly-care platform in India. You extract facts from documents; you do not diagnose.";
 
@@ -80,8 +80,9 @@ Deno.serve(async (req) => {
       // Refresh the overall patient summary from everything we know.
       const summary = await groqJSON(TEXT_MODEL, [
         { role: "system", content: SYSTEM },
-        { role: "user", content: `Write a warm, plain-English care summary (3-5 sentences) of this elderly patient for their family and a home caregiver. Mention age, conditions, daily medicines, allergies and what help they need. Return {"summary": string}.\n${JSON.stringify({ name: p.name, dob: p.dob, ...merged, latest_document: result.summary_plain_english })}` },
+        { role: "user", content: `Write a warm, plain-English care summary (3-5 sentences, no em dashes) of this elderly patient for their family and a home caregiver. Mention age, conditions, daily medicines, allergies and what help they need. Also return the conditions list cleaned up: merge synonyms and duplicates (e.g. \"Type 2 diabetes\" and \"Type 2 Diabetes Mellitus\"), keep the most specific wording, sentence case. Return {"summary": string, "conditions": string[]}.\n${JSON.stringify({ name: p.name, dob: p.dob, ...merged, latest_document: result.summary_plain_english })}` },
       ]).catch(() => null);
+      if (Array.isArray(summary?.conditions) && summary.conditions.length) merged.conditions = uniq(summary.conditions);
       await sb.from("patients").update({ ...merged, ...(summary?.summary ? { ai_summary: summary.summary } : {}) }).eq("id", p.id);
     }
     return json({ ok: true, result });
