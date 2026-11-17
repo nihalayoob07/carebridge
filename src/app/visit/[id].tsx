@@ -6,7 +6,7 @@ import { Pressable, View } from "react-native";
 import { supabase, type Patient, type Visit } from "@/lib/supabase";
 import { time } from "@/lib/format";
 import { C, F } from "@/lib/theme";
-import { Badge, Button, Card, Chip, Chips, Input, Loading, Row, Screen, Section, T, alertMsg, confirmMsg } from "@/components/ui";
+import { Badge, Button, Card, Chip, Chips, Input, Loading, Row, Screen, Section, T, alertMsg, confirmMsg, Empty } from "@/components/ui";
 import { BackHeader } from "@/components/blocks";
 import { Icon } from "@/components/icon";
 import { VisitReport } from "@/components/visit-report";
@@ -39,7 +39,7 @@ async function getCoords() {
 
 export default function VisitScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [patient, setPatient] = useState<Patient | null>(null);
+  const [patient, setPatient] = useState<Patient | null | undefined>(undefined);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [open, setOpen] = useState<Visit | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -52,14 +52,22 @@ export default function VisitScreen() {
       supabase.from("patients").select("*").eq("id", b.patient_id).maybeSingle(),
       supabase.from("visits").select("*").eq("booking_id", id).order("check_in_at", { ascending: false }),
     ]);
-    setPatient(p as Patient);
+    setPatient((p as Patient) ?? null);
     const list = (v as Visit[]) ?? [];
     setVisits(list.filter((x) => x.check_out_at));
     setOpen(list.find((x) => !x.check_out_at) ?? null);
   }, [id]);
   useEffect(() => { load(); }, [load]);
 
-  if (!patient) return <Loading />;
+  if (patient === undefined) return <Loading />;
+  if (patient === null) {
+    return (
+      <Screen>
+        <BackHeader title="Visit" />
+        <Empty icon="lock" text="You no longer have access to this patient. The family may have changed sharing settings." />
+      </Screen>
+    );
+  }
 
   const checkIn = async () => {
     setBusy("in");

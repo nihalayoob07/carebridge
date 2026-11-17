@@ -40,11 +40,18 @@ const STEPS: { verb: string; d: string }[] = [
 ];
 
 function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const wide = width >= 1024;
   const mid = width >= 768;
-  const pad = mid ? 48 : 16;
-  const huge = wide ? Math.min(width * 0.15, 200) : mid ? 128 : Math.max(width * 0.23, 64);
+  // Desktop: edge-to-edge gutters, side columns that scale with the window, and display type sized to
+  // whichever runs out first, the free width or the screen height (3 lines at 0.96 line-height).
+  const pad = wide ? Math.round(Math.max(32, width * 0.035)) : mid ? 48 : 16;
+  const textCol = wide ? Math.round(Math.min(420, Math.max(300, width * 0.22))) : 0;
+  const sideCol = wide ? Math.round(Math.min(280, Math.max(220, width * 0.15))) : 0;
+  const huge = wide
+    ? Math.floor(Math.min((width - pad * 2 - textCol - sideCol - 120) / 3.95, (height - 200) / 2.9))
+    : mid ? 128 : Math.max(width * 0.23, 64);
+  const headline = wide ? Math.round(Math.min(76, Math.max(50, width * 0.036))) : 40;
   const go = () => router.push((signedIn ? home : "/login") as any);
   // Scroll-linked parallax: the type drifts up faster than the figures, giving the hero depth.
   const y = useRef(new Animated.Value(0)).current;
@@ -52,19 +59,19 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   const peopleShift = y.interpolate({ inputRange: [0, 700], outputRange: [0, -40], extrapolate: "clamp" });
 
   const heroText = (
-            <Reveal style={{ width: wide ? 290 : "100%", gap: 18, zIndex: 3 }}>
+            <Reveal style={{ width: wide ? textCol : "100%", gap: wide ? 24 : 18, zIndex: 3 }}>
               <Eyebrow>Elder care, India</Eyebrow>
-              <T role="heading" style={{ fontFamily: F.regular, fontSize: wide ? 48 : 40, lineHeight: wide ? 52 : 44, color: C.ink, letterSpacing: -1.6 }}>
+              <T role="heading" style={{ fontFamily: F.regular, fontSize: headline, lineHeight: Math.round(headline * 1.06), color: C.ink, letterSpacing: -1.6 }}>
                 Trusted{"\n"}Elder Care
               </T>
-              <T style={{ fontSize: 18, lineHeight: 27, color: C.muted, maxWidth: 420 }}>
+              <T style={{ fontSize: wide ? 20 : 18, lineHeight: wide ? 30 : 27, color: C.muted, maxWidth: 440 }}>
                 Verified caregivers and nurses for the people who raised you, with every visit shared live.
               </T>
               <Button title="Get Started" onPress={go} />
             </Reveal>
   );
   const heroVisual = (
-            <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", minHeight: wide ? 600 : undefined, paddingBottom: wide ? 0 : 8 }}>
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", alignSelf: wide ? "stretch" : undefined, paddingBottom: wide ? 0 : 8 }}>
               <Animated.View style={{ transform: [{ translateY: typeShift }] }}>
               <Reveal delay={120} style={{ alignItems: "center" }}>
                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -74,9 +81,9 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
                 </View>
               </Reveal>
               </Animated.View>
-              <Reveal delay={260} style={{ position: "absolute", bottom: wide ? 0 : -8, alignItems: "center" }}>
+              <Reveal delay={260} style={{ position: "absolute", bottom: wide ? Math.max(0, (height - 210 - huge * 2.9) / 2) - 6 : -8, alignItems: "center" }}>
                 <Animated.Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
-                  style={{ width: huge * 1.75, height: huge * 1.75 * (858 / 654), transform: [{ translateY: peopleShift }] }} resizeMode="contain" />
+                  style={{ width: huge * 1.9, height: huge * 1.9 * (858 / 654), transform: [{ translateY: peopleShift }] }} resizeMode="contain" />
               </Reveal>
             </View>
   );
@@ -92,9 +99,10 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
         <meta name="theme-color" content={C.bg} />
       </Head>
 
+      <View style={wide ? { minHeight: height } : undefined}>
       {/* floating island nav */}
       <View style={{ paddingHorizontal: pad, paddingTop: mid ? 20 : 12, alignItems: "center", zIndex: 10 }}>
-        <View style={{ width: "100%", maxWidth: 1280, flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+        <View style={{ width: "100%", maxWidth: wide ? undefined : 1280, flexDirection: "row", alignItems: "center", justifyContent: "space-between",
           height: 64, paddingLeft: 18, paddingRight: 8, borderRadius: 999, backgroundColor: "rgba(247,248,238,0.6)",
           borderWidth: 1, borderColor: "rgba(43,54,40,0.08)", boxShadow: "0 12px 40px -24px rgba(62,90,59,0.4)" } as any}>
           <Row gap={10}>
@@ -118,21 +126,22 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
       </View>
 
       {/* hero */}
-      <View style={{ paddingHorizontal: pad, paddingTop: mid ? 40 : 28, paddingBottom: mid ? 40 : 24, alignItems: "center" }}>
-        <View style={{ width: "100%", maxWidth: 1280, flexDirection: wide ? "row" : "column", alignItems: wide ? "center" : "stretch", gap: wide ? 16 : 28 }}>
+      <View style={{ paddingHorizontal: pad, paddingTop: wide ? 24 : mid ? 40 : 28, paddingBottom: wide ? 32 : mid ? 40 : 24, alignItems: "center", flex: wide ? 1 : undefined }}>
+        <View style={{ width: "100%", maxWidth: wide ? undefined : 1280, flex: wide ? 1 : undefined, flexDirection: wide ? "row" : "column", alignItems: wide ? "center" : "stretch", gap: wide ? 32 : 28 }}>
           {wide ? heroText : heroVisual}
           {wide ? heroVisual : heroText}
 
-          <Reveal delay={200} style={{ width: wide ? 210 : "100%", flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : 4 }}>
+          <Reveal delay={200} style={{ width: wide ? sideCol : "100%", flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : 4 }}>
             {PILLARS.map((p, i) => (
               <View key={p.a} style={{ flexDirection: wide ? "row" : "column", alignItems: "center", gap: 14, paddingVertical: 20,
                 borderTopWidth: wide && i ? 1 : 0, borderColor: C.line, flex: wide ? undefined : 1 }}>
-                <IconCircle name={p.icon} size={wide ? 52 : 46} />
-                <Text style={{ fontFamily: F.regular, fontSize: 16, lineHeight: 21, color: C.ink, textAlign: wide ? "left" : "center" }}>{p.a}{"\n"}{p.b}</Text>
+                <IconCircle name={p.icon} size={wide ? 58 : 46} />
+                <Text style={{ fontFamily: F.regular, fontSize: wide ? 18 : 16, lineHeight: wide ? 24 : 21, color: C.ink, textAlign: wide ? "left" : "center" }}>{p.a}{"\n"}{p.b}</Text>
               </View>
             ))}
           </Reveal>
         </View>
+      </View>
       </View>
 
       {/* bento: what's inside */}

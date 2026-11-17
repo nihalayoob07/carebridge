@@ -10,9 +10,13 @@ import { Avatar, Badge, Button, Card, Empty, Header, Reveal, Row, Screen, Sectio
 import { NotificationsFeed, SignOut } from "@/components/blocks";
 
 type B = Booking & {
-  patients: { name: string; city: string; address: string | null; needs: string[] };
+  // null until the family pays: RLS hides the record, so fall back to the label stored on the booking.
+  patients: { name: string; city: string; address: string | null; needs: string[] } | null;
+  patient_label: string | null; patient_city: string | null;
   visits: { id: string; check_out_at: string | null; check_in_at: string }[];
 };
+
+const who = (b: B) => b.patients?.name ?? b.patient_label ?? "Patient";
 
 export default function Today() {
   const { profile } = useAuth();
@@ -57,10 +61,10 @@ export default function Today() {
             <Reveal key={b.id} delay={i * 80}>
               <Card tone={open ? "deep" : "card"} style={{ gap: 14 }}>
                 <Row>
-                  <Avatar name={b.patients.name} size={50} />
+                  <Avatar name={who(b)} size={50} />
                   <View style={{ flex: 1, minWidth: 0 }}>
-                    <T v="strong" color={open ? C.paper : C.ink}>{b.patients.name}</T>
-                    <T v="small" color={open ? "#C9D3B4" : C.muted} numberOfLines={1}>{b.patients.address ?? b.patients.city}</T>
+                    <T v="strong" color={open ? C.paper : C.ink}>{who(b)}</T>
+                    <T v="small" color={open ? "#C9D3B4" : C.muted} numberOfLines={1}>{b.patients?.address ?? b.patients?.city ?? b.patient_city}</T>
                   </View>
                   {open ? <Badge label={`In since ${time(open.check_in_at)}`} tone="ok" /> : doneToday ? <Badge label="Done today" tone="sage" /> : null}
                 </Row>
@@ -80,11 +84,12 @@ export default function Today() {
         {upcoming.length ? upcoming.map((b) => (
           <Card key={b.id} style={{ gap: 6 }}>
             <Row style={{ justifyContent: "space-between" }}>
-              <T v="strong">{b.patients.name}</T>
+              <T v="strong">{who(b)}</T>
               <Badge label={b.status === "pending" ? "Awaiting payment" : "Confirmed"} tone={b.status === "pending" ? "warn" : "ok"} />
             </Row>
             <T v="small">{day(b.start_at)}, {time(b.start_at)}. {b.units} × {b.plan}, {inr(b.amount_inr)}</T>
             {b.notes ? <T v="small" style={{ color: C.ink }}>“{b.notes}”</T> : null}
+            {!b.patients ? <T v="small">Care details are shared with you once the family confirms and pays.</T> : null}
           </Card>
         )) : <Empty icon="calendar" text="Nothing upcoming yet." />}
       </Section>

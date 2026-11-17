@@ -37,7 +37,7 @@ export default function CareBookings() {
         {shown.map((b) => (
           <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 10 }}>
             <Row style={{ justifyContent: "space-between" }}>
-              <T v="strong">{b.patients?.name}</T>
+              <T v="strong">{b.patients?.name ?? (b as any).patient_label ?? "Patient"}</T>
               <Badge label={b.status} tone={TONE[b.status]} />
             </Row>
             <T v="small">{day(b.start_at)}, {time(b.start_at)} to {day(b.end_at)}. {b.units} × {b.plan}, {inr(b.amount_inr)}</T>
