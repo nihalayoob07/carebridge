@@ -1,7 +1,9 @@
 // Web: marketing site. Native: straight into the app.
 import { Redirect, router } from "expo-router";
 import Head from "expo-router/head";
-import { Image, Linking, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { useRef } from "react";
+import { Animated, Image, Linking, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Backdrop } from "@/components/backdrop";
 import { homeFor, useAuth } from "@/lib/auth";
 import { C, F } from "@/lib/theme";
 import { Button, Eyebrow, IconCircle, Loading, Reveal, Row, T, type IconName } from "@/components/ui";
@@ -44,6 +46,10 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   const pad = mid ? 48 : 16;
   const huge = wide ? Math.min(width * 0.15, 200) : mid ? 128 : Math.max(width * 0.23, 64);
   const go = () => router.push((signedIn ? home : "/login") as any);
+  // Scroll-linked parallax: the type drifts up faster than the figures, giving the hero depth.
+  const y = useRef(new Animated.Value(0)).current;
+  const typeShift = y.interpolate({ inputRange: [0, 700], outputRange: [0, -120], extrapolate: "clamp" });
+  const peopleShift = y.interpolate({ inputRange: [0, 700], outputRange: [0, -40], extrapolate: "clamp" });
 
   const heroText = (
             <Reveal style={{ width: wide ? 290 : "100%", gap: 18, zIndex: 3 }}>
@@ -59,6 +65,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   );
   const heroVisual = (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", minHeight: wide ? 600 : undefined, paddingBottom: wide ? 0 : 8 }}>
+              <Animated.View style={{ transform: [{ translateY: typeShift }] }}>
               <Reveal delay={120} style={{ alignItems: "center" }}>
                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                   {["CARE THAT", "COMES", "HOME"].map((w) => (
@@ -66,15 +73,19 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
                   ))}
                 </View>
               </Reveal>
+              </Animated.View>
               <Reveal delay={260} style={{ position: "absolute", bottom: wide ? 0 : -8, alignItems: "center" }}>
-                <Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
-                  style={{ width: huge * 1.75, height: huge * 1.75 * (858 / 654) }} resizeMode="contain" />
+                <Animated.Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
+                  style={{ width: huge * 1.75, height: huge * 1.75 * (858 / 654), transform: [{ translateY: peopleShift }] }} resizeMode="contain" />
               </Reveal>
             </View>
   );
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ minHeight: "100%" }}>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <Backdrop />
+    <Animated.ScrollView style={{ flex: 1 }} contentContainerStyle={{ minHeight: "100%" }} scrollEventThrottle={16}
+      onScroll={Animated.event([{ nativeEvent: { contentOffset: { y } } }], { useNativeDriver: false })}>
       <Head>
         <title>CareBridge: Trusted Elder Care at Home</title>
         <meta name="description" content="Find verified caregivers and nurses for your parents in India, organise their medical records with AI, and follow every visit live." />
@@ -247,12 +258,17 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
       <View style={{ paddingHorizontal: pad, paddingVertical: 28, alignItems: "center" }}>
         <Row style={{ width: "100%", maxWidth: 1280, justifyContent: "space-between", flexWrap: "wrap" }}>
           <T v="small">© 2026 CareBridge. Made in India for families everywhere.</T>
-          <Pressable accessibilityRole="link" onPress={() => router.push("/scan")} style={(st: any) => ({ opacity: st.hovered ? 0.65 : 1 })}>
-            <Row gap={8}><Icon name="qr" size={16} color={C.muted} /><T v="small">Scan a Health ID</T></Row>
-          </Pressable>
+          <Row gap={22} style={{ flexWrap: "wrap" }}>
+            {([["/privacy", "Privacy Policy", "lock"], ["/terms", "Terms of Service", "scales"], ["/scan", "Scan a Health ID", "qr"]] as const).map(([href, label, icon]) => (
+              <Pressable key={href} accessibilityRole="link" onPress={() => router.push(href)} style={(st: any) => ({ opacity: st.hovered ? 0.6 : 1 })}>
+                <Row gap={8}><Icon name={icon} size={16} color={C.muted} /><T v="small">{label}</T></Row>
+              </Pressable>
+            ))}
+          </Row>
         </Row>
       </View>
-    </ScrollView>
+    </Animated.ScrollView>
+    </View>
   );
 }
 

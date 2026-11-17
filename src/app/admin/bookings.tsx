@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { supabase, type Booking } from "@/lib/supabase";
 import { day, inr } from "@/lib/format";
+import { C } from "@/lib/theme";
 import { Badge, Card, Empty, Header, Row, Screen, T } from "@/components/ui";
 
 const TONE: Record<string, "ok" | "warn" | "danger" | "sage"> = { confirmed: "ok", pending: "warn", cancelled: "danger", completed: "sage" };
+const RAIL: Record<string, string> = { confirmed: C.ok, pending: C.warn, cancelled: C.danger, completed: C.sage };
 
 export default function AdminBookings() {
   const [list, setList] = useState<(Booking & { profiles: { name: string } })[]>([]);
@@ -17,7 +19,7 @@ export default function AdminBookings() {
       <Header title="All bookings" />
       <View style={{ gap: 12, marginTop: 12 }}>
         {list.map((b) => (
-          <Card key={b.id} style={{ gap: 6 }}>
+          <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 6 }}>
             <Row style={{ justifyContent: "space-between" }}>
               <T v="strong" style={{ flex: 1 }} numberOfLines={1}>{b.caregivers?.profiles.name} for {b.patients?.name}</T>
               <Badge label={b.status} tone={TONE[b.status]} />

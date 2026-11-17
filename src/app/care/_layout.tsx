@@ -4,7 +4,7 @@ import { RoleTabs } from "@/components/blocks";
 export default function CaregiverLayout() {
   return (
     <RoleGate role="caregiver">
-      <RoleTabs tabs={[
+      <RoleTabs base="/care" tabs={[
         { name: "index", title: "Today", icon: "sun" },
         { name: "bookings", title: "Bookings", icon: "calendar" },
         { name: "profile", title: "Profile", icon: "user" },

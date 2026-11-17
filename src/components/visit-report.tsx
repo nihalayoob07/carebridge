@@ -9,7 +9,7 @@ export function VisitReport({ v, who }: { v: Visit; who?: string }) {
   const done = v.tasks.filter((t) => t.done).length;
   const hours = v.check_out_at ? ((new Date(v.check_out_at).getTime() - new Date(v.check_in_at).getTime()) / 36e5).toFixed(1) : null;
   return (
-    <Card style={{ gap: 10 }}>
+    <Card variant="ticket" tone="paper" accent={C.sageSoft} style={{ gap: 10 }}>
       <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ flex: 1 }}>
           <T v="strong">{day(v.check_in_at)}</T>

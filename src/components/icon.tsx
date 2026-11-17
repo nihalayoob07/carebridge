@@ -50,6 +50,10 @@ import { WarningIcon } from "phosphor-react-native/src/icons/Warning";
 import { XCircleIcon } from "phosphor-react-native/src/icons/XCircle";
 import { XIcon } from "phosphor-react-native/src/icons/X";
 import { ArrowSquareOutIcon } from "phosphor-react-native/src/icons/ArrowSquareOut";
+import { ListIcon } from "phosphor-react-native/src/icons/List";
+import { CaretDownIcon } from "phosphor-react-native/src/icons/CaretDown";
+import { ScalesIcon } from "phosphor-react-native/src/icons/Scales";
+import { ArrowUpIcon } from "phosphor-react-native/src/icons/ArrowUp";
 
 const MAP = {
   add: PlusIcon, close: XIcon, check: CheckIcon, "check-circle": CheckCircleIcon, checks: ChecksIcon, circle: CircleIcon,
@@ -61,7 +65,7 @@ const MAP = {
   pin: MapPinIcon, edit: NotePencilIcon, pill: PillIcon, qr: QrCodeIcon, share: ShareNetworkIcon, shield: ShieldCheckIcon,
   "sign-out": SignOutIcon, sparkle: SparkleIcon, star: StarIcon, stethoscope: StethoscopeIcon, sun: SunIcon, trash: TrashIcon,
   user: UserCircleIcon, users: UsersThreeIcon, alert: WarningCircleIcon, warning: WarningIcon, "x-circle": XCircleIcon,
-  android: AndroidLogoIcon,
+  android: AndroidLogoIcon, menu: ListIcon, "caret-down": CaretDownIcon, scales: ScalesIcon, "arrow-up": ArrowUpIcon,
 } as const;
 
 export type IconName = keyof typeof MAP;

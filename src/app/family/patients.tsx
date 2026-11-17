@@ -5,7 +5,7 @@ import { supabase, type Patient } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { age } from "@/lib/format";
 import { C, CITIES, F } from "@/lib/theme";
-import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg } from "@/components/ui";
+import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg, Segmented } from "@/components/ui";
 
 const BLOOD = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 
@@ -48,11 +48,11 @@ export default function Patients() {
           <Input label="Full name" value={f.name} onChangeText={set("name")} placeholder="Saraswathi Menon" />
           <Input label="Date of birth (YYYY-MM-DD)" value={f.dob} onChangeText={set("dob")} placeholder="1947-03-12" />
           <T v="label">Gender</T>
-          <Chips>{["female", "male", "other"].map((g) => <Chip key={g} label={g} active={f.gender === g} onPress={() => set("gender")(g)} />)}</Chips>
+          <Segmented label="Gender" value={f.gender} onChange={set("gender")} options={[{ value: "female", label: "Female" }, { value: "male", label: "Male" }, { value: "other", label: "Other" }]} />
           <T v="label">Blood group</T>
-          <Chips>{BLOOD.map((b) => <Chip key={b} label={b} active={f.blood_group === b} onPress={() => set("blood_group")(b)} />)}</Chips>
+          <Segmented label="Blood group" value={f.blood_group} onChange={set("blood_group")} options={BLOOD.map((b) => ({ value: b, label: b }))} />
           <T v="label">City</T>
-          <Chips>{CITIES.map((c) => <Chip key={c} label={c} active={f.city === c} onPress={() => set("city")(c)} />)}</Chips>
+          <Segmented label="City" value={f.city} onChange={set("city")} options={CITIES.map((c) => ({ value: c, label: c }))} />
           <Input label="Address" value={f.address} onChangeText={set("address")} placeholder="House, street, area" />
           <Input label="Known allergies (comma separated)" value={f.allergies} onChangeText={set("allergies")} placeholder="Penicillin, peanuts" />
           <Input label="Conditions (comma separated)" value={f.conditions} onChangeText={set("conditions")} placeholder="Diabetes, hypertension" />

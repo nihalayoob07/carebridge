@@ -5,7 +5,7 @@ import { View } from "react-native";
 import { supabase, type Caregiver } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { CAREGIVER_TYPES, CITIES, LANGUAGES, SKILLS } from "@/lib/theme";
-import { Badge, Button, Card, Chip, Chips, Header, Input, Loading, Row, Screen, Section, T, alertMsg } from "@/components/ui";
+import { Badge, Button, Card, Chip, Chips, Header, Input, Loading, Row, Screen, Section, T, alertMsg, Segmented } from "@/components/ui";
 import { SignOut } from "@/components/blocks";
 
 export default function CareProfile() {
@@ -42,10 +42,10 @@ export default function CareProfile() {
       </Row>
 
       <Section title="Role">
-        <Chips>{Object.entries(CAREGIVER_TYPES).map(([k, v]) => <Chip key={k} label={v} active={c.type === k} onPress={() => setC({ ...c, type: k })} />)}</Chips>
+        <Segmented label="Role" value={c.type} onChange={(k) => setC({ ...c, type: k })} options={Object.entries(CAREGIVER_TYPES).map(([k, v]) => ({ value: k, label: v }))} />
       </Section>
       <Section title="City">
-        <Chips>{CITIES.map((x) => <Chip key={x} label={x} active={c.city === x} onPress={() => setC({ ...c, city: x })} />)}</Chips>
+        <Segmented label="City" value={c.city} onChange={(x) => setC({ ...c, city: x })} options={CITIES.map((x) => ({ value: x, label: x }))} />
       </Section>
       <Section title="About you">
         <Input label="Bio" value={c.bio ?? ""} onChangeText={(bio) => setC({ ...c, bio })} multiline placeholder="Hospitals you've worked at, what families love about you…" />

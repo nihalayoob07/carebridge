@@ -1,13 +1,14 @@
 // Larger shared pieces: caregiver card, notifications feed, QR health card, role tab bar, back header.
 import { router, Tabs } from "expo-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View, useWindowDimensions } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase, type Caregiver, type Patient } from "@/lib/supabase";
 import { ago, age, inr } from "@/lib/format";
 import { C, CAREGIVER_TYPES, F } from "@/lib/theme";
 import { Icon, type IconName } from "./icon";
+import { TopBar } from "./topbar";
 import { Avatar, Badge, Card, Chips, Empty, Reveal, Row, Stars, T } from "./ui";
 
 export const webBase = () =>
@@ -143,16 +144,20 @@ export function HealthIdCard({ p, compact }: { p: Pick<Patient, "name" | "dob" |
 }
 
 type TabDef = { name: string; title: string; icon: IconName };
-export function RoleTabs({ tabs }: { tabs: TabDef[] }) {
+export function RoleTabs({ tabs, base }: { tabs: TabDef[]; base: string }) {
   const insets = useSafeAreaInsets();
+  // Wide web screens: no bottom bar, a floating top bar with a menu dropdown instead.
+  const wide = Platform.OS === "web" && useWindowDimensions().width >= 1024;
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: wide,
+        header: () => <TopBar base={base} items={tabs} />,
+        headerTransparent: false,
         tabBarActiveTintColor: C.deep,
         tabBarInactiveTintColor: "#6F7968",
         // Height grows with the home-indicator inset so labels never clip.
-        tabBarStyle: { backgroundColor: C.paper, borderTopColor: "rgba(43,54,40,0.08)", height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom },
+        tabBarStyle: wide ? { display: "none" } : { backgroundColor: C.paper, borderTopColor: C.lineSoft, height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom },
         tabBarLabelStyle: { fontFamily: F.medium, fontSize: 12, lineHeight: 16, marginTop: 2 },
         tabBarItemStyle: { paddingVertical: 2 },
         sceneStyle: { backgroundColor: C.bg },

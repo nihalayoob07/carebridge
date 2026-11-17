@@ -9,7 +9,7 @@ import { ActivityIndicator, Platform, Share, View } from "react-native";
 import { fn, supabase, type Patient, type Visit } from "@/lib/supabase";
 import { age, ago, cap, day } from "@/lib/format";
 import { C, F } from "@/lib/theme";
-import { Avatar, Badge, Button, Card, Chip, Chips, Empty, KV, Loading, Row, Screen, Section, T, alertMsg, confirmMsg } from "@/components/ui";
+import { Avatar, Badge, Button, Card, Chip, Chips, Empty, KV, Loading, Row, Screen, Section, T, alertMsg, confirmMsg, Segmented } from "@/components/ui";
 import { BackHeader, HealthIdCard, webBase } from "@/components/blocks";
 import { VisitReport } from "@/components/visit-report";
 
@@ -44,8 +44,8 @@ export default function PatientScreen() {
   const owner = scope === "owner";
   const canDocs = owner || scope === "full" || scope === "admin";
   const tabs = [
-    ["overview", "Overview"], ...(canDocs ? [["records", "Records"]] : []), ...(owner ? [["sharing", "Sharing"]] : []),
-    ["id", "Health ID"], ["log", "Care log"],
+    ["overview", "Overview", "pulse"], ...(canDocs ? [["records", "Records", "folder"]] : []), ...(owner ? [["sharing", "Sharing", "lock"]] : []),
+    ["id", "Health ID", "qr"], ["log", "Care log", "file"],
   ];
 
   return (
@@ -61,7 +61,7 @@ export default function PatientScreen() {
       </Row>
 
       <View style={{ marginTop: 16 }}>
-        <Chips>{tabs.map(([k, l]) => <Chip key={k} label={l!} active={tab === k} onPress={() => setTab(k!)} />)}</Chips>
+        <Segmented label="Patient sections" value={tab} onChange={setTab} options={tabs.map(([k, l, i]) => ({ value: k!, label: l!, icon: i as any }))} />
       </View>
 
       {tab === "overview" ? <Overview p={p} /> : null}

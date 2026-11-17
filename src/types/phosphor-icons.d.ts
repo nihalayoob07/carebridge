@@ -49,3 +49,7 @@ export declare const WarningCircleIcon: Icon;
 export declare const WarningIcon: Icon;
 export declare const XCircleIcon: Icon;
 export declare const XIcon: Icon;
+export declare const ListIcon: Icon;
+export declare const CaretDownIcon: Icon;
+export declare const ScalesIcon: Icon;
+export declare const ArrowUpIcon: Icon;

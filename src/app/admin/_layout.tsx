@@ -4,7 +4,7 @@ import { RoleTabs } from "@/components/blocks";
 export default function AdminLayout() {
   return (
     <RoleGate role="admin">
-      <RoleTabs tabs={[
+      <RoleTabs base="/admin" tabs={[
         { name: "index", title: "Insights", icon: "chart" },
         { name: "verify", title: "Verify", icon: "shield" },
         { name: "bookings", title: "Bookings", icon: "calendar" },

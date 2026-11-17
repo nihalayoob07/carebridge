@@ -5,9 +5,10 @@ import { supabase, type Booking } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { day, inr, time } from "@/lib/format";
 import { C } from "@/lib/theme";
-import { Badge, Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, T, alertMsg, confirmMsg } from "@/components/ui";
+import { Badge, Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, T, alertMsg, confirmMsg, Segmented } from "@/components/ui";
 
 const TONE: Record<string, "ok" | "warn" | "danger" | "neutral" | "sage"> = { confirmed: "ok", pending: "warn", cancelled: "danger", completed: "sage" };
+const RAIL: Record<string, string> = { confirmed: C.ok, pending: C.warn, cancelled: C.danger, completed: C.sage };
 
 export default function Bookings() {
   const { profile } = useAuth();
@@ -45,10 +46,10 @@ export default function Bookings() {
   return (
     <Screen>
       <Header eyebrow="Scheduling" title="Bookings" />
-      <Chips>{["all", "pending", "confirmed", "completed", "cancelled"].map((s) => <Chip key={s} label={s} active={filter === s} onPress={() => setFilter(s)} />)}</Chips>
+      <Segmented label="Filter" value={filter} onChange={setFilter} options={["all", "pending", "confirmed", "completed", "cancelled"].map((s) => ({ value: s, label: s[0]!.toUpperCase() + s.slice(1) }))} />
       <View style={{ gap: 12, marginTop: 16 }}>
         {shown.length ? shown.map((b) => (
-          <Card key={b.id} style={{ gap: 10 }}>
+          <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 10 }}>
             <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
               <View style={{ flex: 1 }}>
                 <T v="strong">{b.caregivers?.profiles.name} for {b.patients?.name}</T>

@@ -6,7 +6,7 @@ import { supabase, type Caregiver, type Patient } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { day, endDate, inr, PLAN_UNIT, price } from "@/lib/format";
 import { C, F } from "@/lib/theme";
-import { Button, Card, Chip, Chips, Input, KV, Loading, Row, Screen, Section, T, alertMsg } from "@/components/ui";
+import { Button, Card, Chip, Chips, Input, KV, Loading, Row, Screen, Section, T, alertMsg, Segmented } from "@/components/ui";
 import { BackHeader } from "@/components/blocks";
 
 const nextDays = () => Array.from({ length: 10 }, (_, i) => {
@@ -57,12 +57,13 @@ export default function Book() {
       <BackHeader title={`Book ${c.profiles?.name}`} />
 
       <Section title="Who needs care?">
-        {patients.length ? <Chips>{patients.map((p) => <Chip key={p.id} label={p.name} active={patientId === p.id} onPress={() => setPatientId(p.id)} />)}</Chips>
+        {patients.length ? <Segmented label="Patient" value={patientId} onChange={setPatientId} options={patients.map((p) => ({ value: p.id, label: p.name }))} />
           : <Button title="Add a patient first" variant="outline" onPress={() => router.push("/family/patients")} />}
       </Section>
 
       <Section title="Plan">
-        <Chips>{Object.keys(PLAN_UNIT).map((p) => <Chip key={p} label={p} active={plan === p} onPress={() => { setPlan(p); setUnits(p === "hourly" ? 4 : 1); }} />)}</Chips>
+        <Segmented label="Plan" value={plan} onChange={(p) => { setPlan(p); setUnits(p === "hourly" ? 4 : 1); }}
+          options={[{ value: "hourly", label: "Hourly", icon: "clock" }, { value: "daily", label: "Daily", icon: "sun" }, { value: "weekly", label: "Weekly", icon: "calendar" }, { value: "monthly", label: "Monthly", icon: "calendar" }]} />
         <Row>
           <Button small variant="outline" title="−" label="Fewer" icon={null} style={{ alignSelf: "center" }} onPress={() => setUnits(Math.max(1, units - 1))} />
           <T style={{ fontFamily: F.display, fontSize: 32, color: C.deep, minWidth: 50, textAlign: "center" }}>{units}</T>

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { supabase, type Caregiver } from "@/lib/supabase";
 import { CAREGIVER_TYPES } from "@/lib/theme";
-import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg } from "@/components/ui";
+import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg, Segmented } from "@/components/ui";
 
 export default function Verify() {
   const [list, setList] = useState<Caregiver[]>([]);
@@ -24,10 +24,7 @@ export default function Verify() {
   return (
     <Screen>
       <Header title="Caregiver verification" />
-      <Chips>
-        <Chip label="Pending" active={show === "pending"} onPress={() => setShow("pending")} />
-        <Chip label="Everyone" active={show === "all"} onPress={() => setShow("all")} />
-      </Chips>
+      <Segmented label="Show" value={show} onChange={setShow} options={[{ value: "pending", label: "Pending", icon: "clock" }, { value: "all", label: "Everyone", icon: "users" }]} />
       <View style={{ gap: 12, marginTop: 20 }}>
         {list.map((c) => (
           <Card key={c.id} style={{ gap: 12 }}>

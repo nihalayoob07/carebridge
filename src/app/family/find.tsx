@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { fn, supabase, type Caregiver, type Patient } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { C, CAREGIVER_TYPES, CITIES, LANGUAGES, SKILLS } from "@/lib/theme";
-import { Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg } from "@/components/ui";
+import { Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg, Segmented } from "@/components/ui";
 import { CaregiverCard } from "@/components/blocks";
 
 type Match = Caregiver & { name: string; reason: string; score: number | null };
@@ -63,7 +63,7 @@ export default function Find() {
       {patients.length ? (
         <Card style={{ gap: 12, marginTop: 8, backgroundColor: C.paper }}>
           <T v="label">AI match for</T>
-          <Chips>{patients.map((p) => <Chip key={p.id} label={p.name} active={forPatient === p.id} onPress={() => { setForPatient(p.id); setMatches(null); }} />)}</Chips>
+          <Segmented label="Patient" value={forPatient} onChange={(id) => { setForPatient(id); setMatches(null); }} options={patients.map((p) => ({ value: p.id, label: p.name }))} />
           <T v="small">Ranks verified caregivers against {patients.find((p) => p.id === forPatient)?.name.split(" ")[0]}'s conditions and care needs from their medical records.</T>
           <Button title="Match with AI" icon="sparkle" loading={matching} onPress={runMatch} />
         </Card>

@@ -1,62 +1,72 @@
-// CareBridge UI kit. Sage paper surfaces, double-bezel cards, deep-olive pills with a nested icon "island",
-// Phosphor light icons, Geist text and Anton display. One radius system: pills for controls, 28/22 for cards.
+// CareBridge UI kit.
+// Rules: OKLCH palette (lib/theme), alpha borders, one radius scale where nested radius = outer - padding,
+// Phosphor light icons, Geist text + Anton display, motion on transform/opacity only, reduced-motion aware.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo, ActivityIndicator, Animated, Easing, Platform, Pressable, RefreshControl, ScrollView,
   StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { C, F } from "@/lib/theme";
+import { C, F, R, nest } from "@/lib/theme";
 import { initials } from "@/lib/format";
+import { Backdrop } from "./backdrop";
 import { Icon, type IconName } from "./icon";
 
 export type { IconName };
-const EASE = Easing.bezier(0.16, 1, 0.3, 1);
+export const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 const web = Platform.OS === "web";
+const SPRING = "cubic-bezier(0.32,0.72,0,1)";
+/** Web-only CSS transition on specific properties (never `all`). */
+const tx = (props: string, ms = 260) =>
+  web ? ({ transitionProperty: props, transitionDuration: `${ms}ms`, transitionTimingFunction: SPRING } as any) : null;
 
 // ---------- motion ----------
 let reduceMotion = false;
 AccessibilityInfo.isReduceMotionEnabled?.().then((v) => { reduceMotion = v; }).catch(() => {});
 
-/** Fade-up on first view (IntersectionObserver on web, on mount on native). Honors reduced motion. */
-export function Reveal({ children, delay = 0, style }: { children: ReactNode; delay?: number; style?: StyleProp<ViewStyle> }) {
+/** Fade-up when first scrolled into view (IntersectionObserver on web, on mount on native). */
+export function Reveal({ children, delay = 0, style, distance = 24 }: { children: ReactNode; delay?: number; style?: StyleProp<ViewStyle>; distance?: number }) {
   const v = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const ref = useRef<any>(null);
   useEffect(() => {
     if (reduceMotion) return;
-    const run = () => Animated.timing(v, { toValue: 1, duration: 750, delay, easing: EASE, useNativeDriver: !web }).start();
+    const run = () => Animated.timing(v, { toValue: 1, duration: 700, delay: Math.min(delay, 600), easing: EASE, useNativeDriver: !web }).start();
     const node = ref.current as unknown as Element | null;
     if (web && node && typeof IntersectionObserver !== "undefined") {
-      const io = new IntersectionObserver(([e]) => { if (e?.isIntersecting) { run(); io.disconnect(); } }, { threshold: 0.15 });
+      const io = new IntersectionObserver(([e]) => { if (e?.isIntersecting) { run(); io.disconnect(); } }, { threshold: 0.1 });
       io.observe(node);
       return () => io.disconnect();
     }
     run();
   }, []);
   return (
-    <Animated.View ref={ref} style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [28, 0] }) }] }]}>
+    <Animated.View ref={ref} style={[style, { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [distance, 0] }) }] }]}>
       {children}
     </Animated.View>
   );
 }
 
 // ---------- layout ----------
-export function Screen({ children, scroll = true, onRefresh, refreshing = false, style }: {
-  children: ReactNode; scroll?: boolean; onRefresh?: () => void; refreshing?: boolean; style?: StyleProp<ViewStyle>;
+export function Screen({ children, scroll = true, onRefresh, refreshing = false, style, backdrop = "app" }: {
+  children: ReactNode; scroll?: boolean; onRefresh?: () => void; refreshing?: boolean; style?: StyleProp<ViewStyle>; backdrop?: "app" | "quiet" | "none";
 }) {
-  const inner = <View style={[s.screenInner, style]}>{children}</View>;
+  // Every screen fades up on enter: a cheap page transition that works on web and native.
+  const inner = <Reveal distance={14} style={[s.screenInner, style]}>{children}</Reveal>;
   return (
-    <SafeAreaView style={s.screen} edges={["top"]}>
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 64 }}
-          keyboardShouldPersistTaps="handled"
-          refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.deep} /> : undefined}
-        >
-          {inner}
-        </ScrollView>
-      ) : inner}
-    </SafeAreaView>
+    <View style={s.screen}>
+      {backdrop !== "none" ? <Backdrop variant={backdrop} /> : null}
+      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+        {scroll ? (
+          <ScrollView
+            contentContainerStyle={{ paddingBottom: 72 }}
+            keyboardShouldPersistTaps="handled"
+            refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.deep} /> : undefined}
+          >
+            {inner}
+          </ScrollView>
+        ) : inner}
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -83,12 +93,13 @@ export function T({ children, v = "body", style, numberOfLines, color, role }: {
   );
 }
 
-/** Small pill label. Use sparingly: at most one per few sections. */
+/** Small label above a heading. Use sparingly. */
 export function Eyebrow({ children, tone = "light" }: { children: ReactNode; tone?: "light" | "dark" }) {
   return (
-    <View style={[s.eyebrow, tone === "dark" && { backgroundColor: "rgba(229,232,206,0.12)", borderColor: "rgba(229,232,206,0.2)" }]}>
+    <Row gap={8}>
+      <View style={{ width: 18, height: 2, borderRadius: 1, backgroundColor: tone === "dark" ? C.bg : C.sage }} />
       <Text style={[s.eyebrowText, tone === "dark" && { color: C.bg }]}>{children}</Text>
-    </View>
+    </Row>
   );
 }
 
@@ -99,7 +110,7 @@ export function Button({ title, onPress, variant = "solid", icon = "arrow-right"
 }) {
   const solid = variant === "solid" || variant === "danger";
   const fg = solid ? C.paper : C.ink;
-  const island = solid ? "rgba(247,248,238,0.16)" : "rgba(43,54,40,0.07)";
+  const island = solid ? "rgba(255,255,255,0.16)" : C.tint;
   const iconOnly = !title;
   return (
     <Pressable
@@ -111,26 +122,25 @@ export function Button({ title, onPress, variant = "solid", icon = "arrow-right"
       style={(st: any) => [
         s.btn, small && s.btnSmall, iconOnly && { paddingHorizontal: 6, paddingRight: 6 },
         !icon && !iconOnly && { paddingRight: small ? 16 : 24 }, // no trailing island: keep the label centred
-        variant === "solid" && { backgroundColor: st.hovered ? "#344F31" : C.deep },
+        variant === "solid" && { backgroundColor: st.hovered ? C.deepHover : C.deep, boxShadow: st.hovered ? "0 10px 24px -12px rgba(46,70,43,0.55)" : "0 1px 0 rgba(255,255,255,0.12) inset" },
         variant === "danger" && { backgroundColor: C.danger },
-        variant === "outline" && { borderWidth: 1.2, borderColor: st.hovered ? C.ink : "rgba(43,54,40,0.35)", backgroundColor: st.hovered ? "rgba(43,54,40,0.04)" : "transparent" },
-        variant === "ghost" && st.hovered && { backgroundColor: "rgba(43,54,40,0.05)" },
+        variant === "outline" && { borderWidth: 1, borderColor: st.hovered ? C.lineStrong : C.line, backgroundColor: st.hovered ? C.tint : "rgba(255,255,255,0.35)" },
+        variant === "ghost" && st.hovered && { backgroundColor: C.tint },
         st.focused && s.focus,
-        { transform: [{ scale: st.pressed ? 0.98 : 1 }] },
+        { transform: [{ scale: st.pressed ? 0.97 : 1 }, { translateY: st.hovered && !st.pressed && solid ? -1 : 0 }] },
         disabled && { opacity: 0.45 },
-        web && ({ transitionProperty: "background-color, border-color, transform", transitionDuration: "260ms", transitionTimingFunction: "cubic-bezier(0.32,0.72,0,1)", cursor: disabled ? "not-allowed" : "pointer" } as any),
+        tx("background-color, border-color, transform, box-shadow"),
+        web && ({ cursor: disabled ? "not-allowed" : "pointer" } as any),
         style,
       ]}
     >
       {(st: any) => (
         <>
-          {/* Keep the label laid out while loading so the button keeps its size and the spinner sits dead centre. */}
           {loading ? <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}><ActivityIndicator color={fg} /></View> : null}
           {title ? <Text numberOfLines={1} style={[s.btnText, small && { fontSize: 14 }, { color: fg }, loading && { opacity: 0 }]}>{title}</Text> : null}
           {icon ? (
             <View style={[s.island, small && { width: 26, height: 26 }, { backgroundColor: variant === "ghost" ? "transparent" : island }, loading && { opacity: 0 },
-              { transform: [{ translateX: st.hovered ? 2 : 0 }, { translateY: st.hovered && icon === "arrow-right" ? -1 : 0 }] },
-              web && ({ transitionProperty: "transform", transitionDuration: "320ms", transitionTimingFunction: "cubic-bezier(0.32,0.72,0,1)" } as any)]}>
+              { transform: [{ translateX: st.hovered ? 3 : 0 }, { rotate: st.hovered && icon === "arrow-right" ? "-12deg" : "0deg" }] }, tx("transform", 380)]}>
               <Icon name={icon} size={small ? 14 : 16} color={fg} weight="regular" />
             </View>
           ) : null}
@@ -140,11 +150,16 @@ export function Button({ title, onPress, variant = "solid", icon = "arrow-right"
   );
 }
 
+/** Multi-select filter tag: squared corners, check mark when on. */
 export function Chip({ label, active, onPress }: { label: string; active?: boolean; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={{ selected: !!active }}
-      style={(st: any) => [s.chip, st.hovered && !active && { borderColor: C.sage }, active && { backgroundColor: C.deep, borderColor: C.deep },
-        st.focused && s.focus, { transform: [{ scale: st.pressed ? 0.97 : 1 }] }]}>
+    <Pressable onPress={onPress} accessibilityRole="checkbox" accessibilityState={{ checked: !!active }}
+      style={(st: any) => [s.chip,
+        st.hovered && !active && { backgroundColor: "rgba(255,255,255,0.75)", borderColor: C.lineStrong },
+        active && { backgroundColor: C.deep, borderColor: C.deep },
+        st.focused && s.focus, { transform: [{ scale: st.pressed ? 0.95 : 1 }] },
+        tx("background-color, border-color, transform", 220), web && ({ cursor: "pointer" } as any)]}>
+      {active ? <Icon name="check" size={13} color={C.paper} weight="bold" /> : null}
       <Text style={[s.chipText, active && { color: C.paper }]}>{label}</Text>
     </Pressable>
   );
@@ -154,63 +169,125 @@ export function Chips({ children }: { children: ReactNode }) {
   return <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{children}</View>;
 }
 
+/** Single-choice segmented control: a tray with a raised selection (tray radius 14, padding 4, segment 10). */
+export function Segmented<V extends string>({ options, value, onChange, label }: {
+  options: { value: V; label: string; icon?: IconName }[]; value: V | null; onChange: (v: V) => void; label?: string;
+}) {
+  const TRAY = R.md, PAD = 4;
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label}
+      style={{ flexDirection: "row", flexWrap: "wrap", alignSelf: "flex-start", maxWidth: "100%", padding: PAD, gap: 2,
+        borderRadius: TRAY, backgroundColor: C.tint, borderWidth: 1, borderColor: C.lineSoft }}>
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <Pressable key={o.value} onPress={() => onChange(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }}
+            style={(st: any) => [{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, minHeight: 38,
+              borderRadius: nest(TRAY, PAD) },
+              on ? { backgroundColor: C.paper, boxShadow: "0 1px 2px rgba(23,33,19,0.12), 0 4px 12px -6px rgba(23,33,19,0.25)" } as any
+                : st.hovered && { backgroundColor: "rgba(255,255,255,0.45)" },
+              st.focused && s.focus, { transform: [{ scale: st.pressed ? 0.96 : 1 }] },
+              tx("background-color, box-shadow, transform", 240), web && ({ cursor: "pointer" } as any)]}>
+            {o.icon ? <Icon name={o.icon} size={15} color={on ? C.deep : C.muted} weight={on ? "fill" : "regular"} /> : null}
+            <Text style={{ fontFamily: on ? F.semi : F.medium, fontSize: 14, color: on ? C.ink : C.muted }}>{o.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function Input({ label, style, hint, ...p }: TextInputProps & { label?: string; hint?: string }) {
   const [focus, setFocus] = useState(false);
   return (
     <View style={{ gap: 6 }}>
       {label ? <Text style={s.inputLabel}>{label}</Text> : null}
       <TextInput
-        placeholderTextColor="#7C8675"
+        placeholderTextColor={C.muted}
         accessibilityLabel={label ?? p.placeholder}
         {...p}
         onFocus={(e) => { setFocus(true); p.onFocus?.(e); }}
         onBlur={(e) => { setFocus(false); p.onBlur?.(e); }}
-        style={[s.input, focus && { borderColor: C.deep, boxShadow: "0 0 0 3px rgba(120,149,117,0.28)" } as any,
-          p.multiline && { minHeight: 96, textAlignVertical: "top" }, web && ({ outlineStyle: "none" } as any), style]}
+        style={[s.input, focus && ({ borderColor: C.sage, boxShadow: "0 0 0 4px rgba(120,149,117,0.22)", backgroundColor: "#fff" } as any),
+          p.multiline && { minHeight: 96, textAlignVertical: "top" }, web && ({ outlineStyle: "none" } as any), tx("border-color, box-shadow, background-color", 200), style]}
       />
       {hint ? <Text style={[s.small, { fontSize: 13 }]}>{hint}</Text> : null}
     </View>
   );
 }
 
-// ---------- surfaces ----------
-/** Double-bezel card: a hairline tray with an inner core. */
-export function Card({ children, style, onPress, tone = "card", label }: {
-  children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; tone?: "card" | "paper" | "deep" | "alert"; label?: string;
-}) {
-  const core = { card: C.card, paper: C.paper, deep: C.deep, alert: "#F3DCD2" }[tone];
-  const shell = tone === "deep" ? "rgba(62,90,59,0.22)" : "rgba(43,54,40,0.045)";
-  // Outer-layout props belong on the shell, everything else on the core.
-  const { flex, flexGrow, flexBasis, flexShrink, alignSelf, width, minWidth, maxWidth, marginTop, marginBottom, ...coreStyle } =
-    (StyleSheet.flatten(style) ?? {}) as ViewStyle;
-  const outer = { flex, flexGrow, flexBasis, flexShrink, alignSelf, width, minWidth, maxWidth, marginTop, marginBottom };
-  const inner = () => (
-    <View style={[s.cardCore, { backgroundColor: core }, tone === "deep" && { boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)" } as any,
-      flex != null || flexGrow != null ? { flexGrow: 1 } : null, coreStyle]}>
-      {children}
-    </View>
-  );
-  if (!onPress) return <View style={[s.cardShell, { backgroundColor: shell }, outer]}>{inner()}</View>;
+export function Check({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-      style={(st: any) => [s.cardShell, { backgroundColor: shell }, outer,
-        st.hovered && { boxShadow: "0 24px 48px -28px rgba(62,90,59,0.45)" } as any,
-        st.focused && s.focus, { transform: [{ scale: st.pressed ? 0.99 : 1 }, { translateY: st.hovered ? -2 : 0 }] },
-        web && ({ transitionProperty: "transform, box-shadow", transitionDuration: "420ms", transitionTimingFunction: "cubic-bezier(0.32,0.72,0,1)", cursor: "pointer" } as any)]}>
-      {inner()}
+    <Pressable onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked }}
+      style={(st: any) => [{ flexDirection: "row", gap: 12, alignItems: "flex-start", paddingVertical: 4 }, st.focused && s.focus, web && ({ cursor: "pointer" } as any)]}>
+      <View style={[{ width: 22, height: 22, borderRadius: R.xs, borderWidth: 1.5, borderColor: checked ? C.deep : C.lineStrong, marginTop: 1,
+        backgroundColor: checked ? C.deep : "rgba(255,255,255,0.6)", alignItems: "center", justifyContent: "center" }, tx("background-color, border-color", 160)]}>
+        {checked ? <Icon name="check" size={14} color={C.paper} weight="bold" /> : null}
+      </View>
+      <View style={{ flex: 1 }}>{children}</View>
     </Pressable>
   );
 }
 
+// ---------- surfaces ----------
+type CardTone = "card" | "paper" | "deep" | "alert" | "glass";
+/**
+ * Card variants keep pages from becoming a wall of identical boxes:
+ *  - bezel (default): hairline tray + inner core, inner radius = outer radius - tray padding
+ *  - ticket: flat sheet with a coloured status rail on the left
+ *  - plain: borderless tinted area for grouping controls
+ */
+export function Card({ children, style, onPress, tone = "card", label, variant = "bezel", accent }: {
+  children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; tone?: CardTone; label?: string;
+  variant?: "bezel" | "ticket" | "plain"; accent?: string;
+}) {
+  const core = { card: C.card, paper: C.paper, deep: C.deep, alert: C.dangerBg, glass: "rgba(255,255,255,0.55)" }[tone];
+  const { flex, flexGrow, flexBasis, flexShrink, alignSelf, width, minWidth, maxWidth, marginTop, marginBottom, ...coreStyle } =
+    (StyleSheet.flatten(style) ?? {}) as ViewStyle;
+  const outer = { flex, flexGrow, flexBasis, flexShrink, alignSelf, width, minWidth, maxWidth, marginTop, marginBottom };
+  const grow = flex != null || flexGrow != null ? { flexGrow: 1 } : null;
+
+  const OUT = R.xl, PAD = 4;
+  const shellStyle: any[] = variant === "bezel"
+    ? [{ borderRadius: OUT, padding: PAD, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: tone === "deep" ? "rgba(62,90,59,0.2)" : "rgba(255,255,255,0.28)" }]
+    : variant === "ticket"
+      ? [{ borderRadius: R.lg, backgroundColor: core, borderWidth: 1, borderColor: C.lineSoft, overflow: "hidden", flexDirection: "row" }]
+      : [{ borderRadius: R.lg, backgroundColor: C.tint }];
+  const body = variant === "bezel"
+    ? <View style={[s.cardCore, { borderRadius: nest(OUT, PAD), backgroundColor: core }, tone === "deep" && ({ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)" } as any), grow, coreStyle]}>{children}</View>
+    : variant === "ticket"
+      ? <>
+          <View style={{ width: 5, backgroundColor: accent ?? C.sage }} />
+          <View style={[{ flex: 1, padding: 18 }, grow, coreStyle]}>{children}</View>
+        </>
+      : <View style={[{ padding: 18 }, grow, coreStyle]}>{children}</View>;
+
+  if (!onPress) return <View style={[...shellStyle, outer]}>{body}</View>;
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
+      style={(st: any) => [...shellStyle, outer,
+        st.hovered && ({ boxShadow: "0 22px 40px -26px rgba(46,70,43,0.55)", borderColor: C.line } as any),
+        st.focused && s.focus, { transform: [{ scale: st.pressed ? 0.985 : 1 }, { translateY: st.hovered && !st.pressed ? -3 : 0 }] },
+        tx("transform, box-shadow, border-color", 420), web && ({ cursor: "pointer" } as any)]}>
+      {body}
+    </Pressable>
+  );
+}
+
+/** Status pill (tinted fill + icon) or a quiet outlined tag for descriptive labels. */
 export function Badge({ label, tone = "neutral", icon }: { label: string; tone?: "neutral" | "ok" | "warn" | "danger" | "sage"; icon?: IconName }) {
-  const [bg, fg] = {
-    neutral: ["rgba(43,54,40,0.07)", C.ink], ok: ["#D6E4CC", "#3B6237"], warn: ["#F1E4C3", "#7E5A16"],
-    danger: ["#F2D6CB", "#8E3D28"], sage: [C.sage, C.paper],
-  }[tone];
+  if (tone === "neutral") {
+    return (
+      <View style={[s.tag]}>
+        <Text style={s.tagText}>{label}</Text>
+      </View>
+    );
+  }
+  const [bg, fg] = { ok: [C.okBg, C.ok], warn: [C.warnBg, C.warn], danger: [C.dangerBg, C.danger], sage: [C.sageSoft, C.deep] }[tone];
   return (
     <View style={[s.badge, { backgroundColor: bg }]}>
-      {icon ? <Icon name={icon} size={12} color={fg} weight="bold" /> : null}
-      <Text style={[s.badgeText, { color: fg }]}>{label}</Text>
+      {icon ? <Icon name={icon} size={12} color={fg} weight="bold" /> : <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: fg }} />}
+      <Text style={[s.badgeText, { color: fg }]}>{label.charAt(0).toUpperCase() + label.slice(1)}</Text>
     </View>
   );
 }
@@ -223,30 +300,36 @@ export function IconCircle({ name, size = 46, color = C.deep }: { name: IconName
   );
 }
 
+// Avatars get one of four tones from the name so lists don't look cloned.
+const AV = [["#789575", "#F7F8EE"], ["#3E5A3B", "#E5E8CE"], ["#C9D3A8", "#2F3C2C"], ["#A9B98F", "#24311F"]];
 export function Avatar({ name, size = 52 }: { name: string; size?: number }) {
+  const [bg, fg] = AV[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length]!;
   return (
-    <View accessibilityLabel={name} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.sage, alignItems: "center", justifyContent: "center",
+    <View accessibilityLabel={name} style={{ width: size, height: size, borderRadius: size * 0.32, backgroundColor: bg, alignItems: "center", justifyContent: "center",
       boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25)" } as any}>
-      <Text style={{ fontFamily: F.display, color: C.paper, fontSize: size * 0.38, letterSpacing: 0.5 }}>{initials(name)}</Text>
+      <Text style={{ fontFamily: F.display, color: fg, fontSize: size * 0.38, letterSpacing: 0.5 }}>{initials(name)}</Text>
     </View>
   );
 }
 
 export function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <View style={{ gap: 14, marginTop: 32 }}>
+    <Reveal style={{ gap: 14, marginTop: 34 }}>
       <Row style={{ justifyContent: "space-between" }}>
-        <T v="h3" role="heading">{title}</T>
+        <Row gap={10}>
+          <View style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: C.sage }} />
+          <T v="h3" role="heading">{title}</T>
+        </Row>
         {action ? <View style={{ alignSelf: "center" }}>{action}</View> : null}
       </Row>
       {children}
-    </View>
+    </Reveal>
   );
 }
 
 export function Empty({ icon = "leaf", text }: { icon?: IconName; text: string }) {
   return (
-    <View style={{ alignItems: "center", paddingVertical: 32, paddingHorizontal: 20, gap: 12, borderRadius: 24, borderWidth: 1, borderStyle: "dashed", borderColor: C.line }}>
+    <View style={{ alignItems: "center", paddingVertical: 32, paddingHorizontal: 20, gap: 12, borderRadius: R.lg, borderWidth: 1, borderStyle: "dashed", borderColor: C.line, backgroundColor: "rgba(255,255,255,0.25)" }}>
       <IconCircle name={icon} color={C.sage} />
       <T v="small" style={{ textAlign: "center", maxWidth: 320 }}>{text}</T>
     </View>
@@ -266,27 +349,27 @@ export function Loading({ rows = 3 }: { rows?: number }) {
     return () => loop.stop();
   }, []);
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg, padding: 20, paddingTop: 72, gap: 14, width: "100%", maxWidth: 980, alignSelf: "center" }}
-      accessibilityLabel="Loading…" accessibilityRole="progressbar">
-      <Animated.View style={{ opacity: v, gap: 14 }}>
-        <View style={{ height: 34, width: "55%", borderRadius: 12, backgroundColor: C.bgDeep }} />
-        {Array.from({ length: rows }).map((_, i) => <View key={i} style={{ height: 96, borderRadius: 26, backgroundColor: C.bgDeep }} />)}
-      </Animated.View>
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Backdrop variant="quiet" />
+      <View style={{ padding: 20, paddingTop: 72, gap: 14, width: "100%", maxWidth: 980, alignSelf: "center" }} accessibilityLabel="Loading…" accessibilityRole="progressbar">
+        <Animated.View style={{ opacity: v, gap: 14 }}>
+          <View style={{ height: 34, width: "55%", borderRadius: R.sm, backgroundColor: C.bgDeep }} />
+          {Array.from({ length: rows }).map((_, i) => <View key={i} style={{ height: 96, borderRadius: R.xl, backgroundColor: C.bgDeep }} />)}
+        </Animated.View>
+      </View>
     </View>
   );
 }
 
 export function Header({ eyebrow, title, right }: { eyebrow?: string; title: string; right?: ReactNode }) {
   return (
-    <Reveal>
-      <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8, marginTop: 8 }}>
-        <View style={{ flex: 1, gap: 10, minWidth: 0 }}>
-          {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-          <T v="h1">{title}</T>
-        </View>
-        {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
-      </Row>
-    </Reveal>
+    <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8, marginTop: 8 }}>
+      <View style={{ flex: 1, gap: 10, minWidth: 0 }}>
+        {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+        <T v="h1">{title}</T>
+      </View>
+      {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
+    </Row>
   );
 }
 
@@ -302,7 +385,7 @@ export function KV({ k, v }: { k: string; v?: ReactNode }) {
 export function Stars({ value, count }: { value: number; count?: number }) {
   return (
     <Row gap={4}>
-      <Icon name="star" size={14} color={C.warn} weight="fill" />
+      <Icon name="star" size={14} color={C.star} weight="fill" />
       <T v="strong" style={{ fontSize: 14, fontVariant: ["tabular-nums"] }}>{Number(value).toFixed(1)}</T>
       {count != null ? <T v="small">({count})</T> : null}
     </Row>
@@ -325,7 +408,7 @@ export async function confirmMsg(title: string, msg: string): Promise<boolean> {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
-  screenInner: { paddingHorizontal: 20, paddingTop: 12, width: "100%", maxWidth: 980, alignSelf: "center" },
+  screenInner: { paddingHorizontal: 20, paddingTop: 12, width: "100%", maxWidth: 1040, alignSelf: "center" },
   display: { fontFamily: F.display, fontSize: 60, lineHeight: 62, color: C.sage, textTransform: "uppercase", letterSpacing: -0.5 },
   h1: { fontFamily: F.regular, fontSize: 34, lineHeight: 40, color: C.ink, letterSpacing: -1 },
   h2: { fontFamily: F.medium, fontSize: 22, lineHeight: 28, color: C.ink, letterSpacing: -0.4 },
@@ -334,20 +417,21 @@ const s = StyleSheet.create({
   strong: { fontFamily: F.semi, fontSize: 16, lineHeight: 22, color: C.ink },
   small: { fontFamily: F.regular, fontSize: 14, lineHeight: 21, color: C.muted },
   label: { fontFamily: F.semi, fontSize: 11, letterSpacing: 2, color: C.ink, textTransform: "uppercase" },
-  eyebrow: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: "rgba(43,54,40,0.05)", borderWidth: 1, borderColor: "rgba(43,54,40,0.1)" },
-  eyebrowText: { fontFamily: F.medium, fontSize: 10.5, letterSpacing: 2.2, textTransform: "uppercase", color: C.ink },
-  btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: 999, paddingLeft: 24, paddingRight: 8, minHeight: 52, alignSelf: "flex-start" },
+  eyebrowText: { fontFamily: F.medium, fontSize: 11, letterSpacing: 2.2, textTransform: "uppercase", color: C.ink },
+  btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: R.pill, paddingLeft: 24, paddingRight: 8, minHeight: 52, alignSelf: "flex-start" },
   btnSmall: { minHeight: 40, paddingLeft: 16, paddingRight: 6, gap: 8 },
   btnText: { fontFamily: F.medium, fontSize: 16, letterSpacing: -0.1 },
   island: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   focus: { outlineWidth: 2, outlineStyle: "solid", outlineColor: C.sage, outlineOffset: 2 } as any,
-  cardShell: { borderRadius: 28, padding: 5, borderWidth: 1, borderColor: "rgba(43,54,40,0.07)" },
-  cardCore: { borderRadius: 23, padding: 18, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)" } as any,
-  badge: { flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" },
-  badgeText: { fontFamily: F.medium, fontSize: 12.5 },
-  chip: { borderRadius: 999, borderWidth: 1, borderColor: C.line, paddingHorizontal: 15, paddingVertical: 9, backgroundColor: C.paper, minHeight: 40, justifyContent: "center" },
+  cardCore: { padding: 18, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)" } as any,
+  badge: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: R.xs, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-start" },
+  badgeText: { fontFamily: F.semi, fontSize: 12, letterSpacing: 0.2 },
+  tag: { borderRadius: R.xs, borderWidth: 1, borderColor: C.line, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.35)" },
+  tagText: { fontFamily: F.medium, fontSize: 12.5, color: C.ink },
+  chip: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: R.sm, borderWidth: 1, borderColor: C.line, paddingHorizontal: 13, paddingVertical: 8,
+    backgroundColor: "rgba(255,255,255,0.5)", minHeight: 38 },
   chipText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
   inputLabel: { fontFamily: F.medium, fontSize: 14, color: C.ink },
-  input: { backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, fontFamily: F.regular, color: C.ink },
+  input: { backgroundColor: "rgba(255,255,255,0.6)", borderWidth: 1, borderColor: C.line, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, fontFamily: F.regular, color: C.ink },
   iconCircle: { borderWidth: 1, alignItems: "center", justifyContent: "center" },
 });
