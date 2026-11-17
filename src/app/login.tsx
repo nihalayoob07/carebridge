@@ -1,11 +1,11 @@
-// Sign in / sign up: Google, email + password (with reset), or a one-time email code.
+// Sign in / sign up: Google, or email + password (with password reset).
 import { Redirect, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { supabase } from "@/lib/supabase";
 import { homeFor, useAuth } from "@/lib/auth";
-import { savePending, sendEmailCode, sendPasswordReset, signInWithGoogle, verifyEmailCode } from "@/lib/auth-actions";
+import { savePending, sendPasswordReset, signInWithGoogle } from "@/lib/auth-actions";
 import { C, CITIES, F, R } from "@/lib/theme";
 import { Avatar, Button, Card, Check, Eyebrow, Input, Row, Screen, Segmented, T, alertMsg } from "@/components/ui";
 
@@ -25,25 +25,15 @@ export default function Login() {
   const { session, profile } = useAuth();
   const params = useLocalSearchParams<{ forgot?: string }>();
   const [mode, setMode] = useState<"in" | "up">("in");
-  const [method, setMethod] = useState<"password" | "code">("password");
   const [forgot, setForgot] = useState(params.forgot === "1");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
   const [name, setName] = useState("");
   const [role, setRole] = useState<"family" | "caregiver">("family");
   const [city, setCity] = useState("Kochi");
   const [busy, setBusy] = useState<string | null>(null);
   const [agree, setAgree] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [cooldown]);
 
   if (session && profile) return <Redirect href={homeFor(profile.role) as any} />;
 
@@ -81,27 +71,6 @@ export default function Login() {
     return run("google", async () => {
       if (up) await savePending({ role, city });
       await signInWithGoogle();
-    });
-  };
-
-  const sendCode = () => {
-    if (needConsent()) return;
-    if (!emailOk(email)) return alertMsg("Enter a valid email address");
-    return run("send", async () => {
-      const { error } = await sendEmailCode(email, up ? { name, role, city } : undefined);
-      if (error) {
-        const msg = /signups not allowed|not found/i.test(error.message) ? "No account uses that email yet. Switch to Create Account." : error.message;
-        return alertMsg("Couldn't send the code", msg);
-      }
-      setCodeSent(true); setCooldown(60); setCode("");
-    });
-  };
-
-  const verify = () => {
-    if (code.trim().length < 6) return alertMsg("Enter the code from the email");
-    return run("verify", async () => {
-      const { error } = await verifyEmailCode(email, code);
-      if (error) alertMsg("That code didn't work", "Check the latest email, or send a new code.");
     });
   };
 
@@ -172,44 +141,20 @@ export default function Login() {
               <View style={{ flex: 1, height: 1, backgroundColor: C.line }} />
             </Row>
 
-            <Segmented label="Sign-in method" value={method} onChange={(m) => { setMethod(m); setCodeSent(false); }}
-              options={[{ value: "password", label: "Password", icon: "lock" }, { value: "code", label: "Email code", icon: "file" }]} />
-
-            <Input label="Email" value={email} onChangeText={(v) => { setEmail(v); setCodeSent(false); }} autoCapitalize="none" autoComplete="email"
+            <Input label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email"
               keyboardType="email-address" inputMode="email" placeholder="you@example.com" />
 
-            {method === "password" ? (
-              <>
-                <View style={{ gap: 6 }}>
-                  <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete={up ? "new-password" : "current-password"}
-                    placeholder={up ? "At least 8 characters…" : "Your password…"} onSubmitEditing={() => (up ? signUpPassword() : signIn(email, password))} />
-                  {!up ? (
-                    <Pressable onPress={() => setForgot(true)} accessibilityRole="button" style={{ alignSelf: "flex-end", paddingVertical: 4 }}>
-                      <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.deep, textDecorationLine: "underline" }}>Forgot password?</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-                <Button title={up ? "Create Account" : "Sign In"} loading={busy === email || busy === "up"}
-                  onPress={() => (up ? signUpPassword() : signIn(email, password))} />
-              </>
-            ) : !codeSent ? (
-              <>
-                <T v="small">We'll email you a one-time code. No password needed.</T>
-                <Button title="Email Me a Code" loading={busy === "send"} onPress={sendCode} />
-              </>
-            ) : (
-              <>
-                <T v="small" style={{ color: C.ink }}>Enter the code we sent to <T v="small" style={{ fontFamily: F.semi, color: C.ink }}>{email.trim()}</T>.</T>
-                <Input label="Code" value={code} onChangeText={(v) => setCode(v.replace(/\D/g, "").slice(0, 10))} keyboardType="number-pad" inputMode="numeric"
-                  autoComplete="one-time-code" textContentType="oneTimeCode" placeholder="123456…" onSubmitEditing={verify}
-                  style={{ fontSize: 22, letterSpacing: 6, fontVariant: ["tabular-nums"] }} />
-                <Button title="Verify and Continue" loading={busy === "verify"} onPress={verify} />
-                <Row style={{ justifyContent: "space-between" }}>
-                  <Button title={cooldown ? `Resend in ${cooldown}s` : "Resend Code"} variant="ghost" small icon={null} disabled={cooldown > 0} onPress={sendCode} />
-                  <Button title="Change Email" variant="ghost" small icon={null} onPress={() => setCodeSent(false)} />
-                </Row>
-              </>
-            )}
+              <View style={{ gap: 6 }}>
+                <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete={up ? "new-password" : "current-password"}
+                  placeholder={up ? "At least 8 characters…" : "Your password…"} onSubmitEditing={() => (up ? signUpPassword() : signIn(email, password))} />
+                {!up ? (
+                  <Pressable onPress={() => setForgot(true)} accessibilityRole="button" style={{ alignSelf: "flex-end", paddingVertical: 4 }}>
+                    <Text style={{ fontFamily: F.medium, fontSize: 14, color: C.deep, textDecorationLine: "underline" }}>Forgot password?</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              <Button title={up ? "Create Account" : "Sign In"} loading={busy === email || busy === "up"}
+                onPress={() => (up ? signUpPassword() : signIn(email, password))} />
 
             {!up ? (
               <T v="small" style={{ fontSize: 13 }}>
@@ -218,7 +163,7 @@ export default function Login() {
             ) : null}
 
             <Button title={up ? "Have an account? Sign in" : "New here? Create an account"} variant="ghost" icon={null}
-              onPress={() => { setMode(up ? "in" : "up"); setCodeSent(false); setNotice(null); }} />
+              onPress={() => { setMode(up ? "in" : "up"); setNotice(null); }} />
           </Card>
         )}
       </View>

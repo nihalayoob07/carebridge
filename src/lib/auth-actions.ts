@@ -1,4 +1,4 @@
-// Sign-in helpers: Google OAuth, email one-time codes and password reset (all PKCE).
+// Sign-in helpers: Google OAuth and password reset (PKCE).
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
@@ -38,18 +38,6 @@ export async function signInWithGoogle() {
     const { error: e } = await supabase.auth.exchangeCodeForSession(code);
     if (e) throw e;
   }
-}
-
-/** Email a one-time code. For sign-ups, `meta` creates the account with name/role/city. */
-export function sendEmailCode(email: string, meta?: { name: string; role: string; city: string }) {
-  return supabase.auth.signInWithOtp({
-    email: email.trim(),
-    options: { shouldCreateUser: !!meta, data: meta, emailRedirectTo: redirectTo("/auth/callback") },
-  });
-}
-
-export function verifyEmailCode(email: string, token: string) {
-  return supabase.auth.verifyOtp({ email: email.trim(), token: token.trim(), type: "email" });
 }
 
 export function sendPasswordReset(email: string) {
