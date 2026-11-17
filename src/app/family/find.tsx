@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { fn, supabase, type Caregiver, type Patient } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { C, CAREGIVER_TYPES, CITIES, LANGUAGES, SKILLS } from "@/lib/theme";
-import { Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg, Segmented } from "@/components/ui";
+import { Button, Card, Chip, Chips, Empty, Header, Input, Row, Screen, Section, T, alertMsg, Segmented, Grid } from "@/components/ui";
 import { CaregiverCard } from "@/components/blocks";
 
 type Match = Caregiver & { name: string; reason: string; score: number | null };
@@ -71,7 +71,7 @@ export default function Find() {
 
       {matches ? (
         <Section title="Best matches" action={<Button title="Clear" small variant="ghost" icon="close" onPress={() => setMatches(null)} />}>
-          {matches.length ? matches.map((m) => <CaregiverCard key={m.id} c={m} reason={m.reason} score={m.score} />)
+          {matches.length ? <Grid min={380}>{matches.map((m) => <CaregiverCard key={m.id} c={m} reason={m.reason} score={m.score} />)}</Grid>
             : <Empty text="No verified caregivers match in this city yet. Try the search below." />}
         </Section>
       ) : null}
@@ -94,7 +94,7 @@ export default function Find() {
 
       <Section title={`${results.length} caregivers`}>
         {loading ? <ActivityIndicator color={C.deep} /> : results.length
-          ? <View style={{ gap: 12 }}>{results.map((c) => <CaregiverCard key={c.id} c={c} />)}</View>
+          ? <Grid min={380}>{results.map((c) => <CaregiverCard key={c.id} c={c} />)}</Grid>
           : <Empty icon="search" text="No one matches these filters." />}
       </Section>
     </Screen>

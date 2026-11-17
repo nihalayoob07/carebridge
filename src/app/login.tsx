@@ -107,7 +107,7 @@ export default function Login() {
           <Card style={{ gap: 14 }}>
             <T v="small" style={{ color: C.ink }}>Enter your email and we'll send you a link to choose a new password.</T>
             <Input label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" inputMode="email" placeholder="you@example.com" />
-            <Button title="Send Reset Link" icon="arrow-right" loading={busy === "reset"} onPress={reset} />
+            <Button title="Send Reset Link" style={{ alignSelf: "stretch" }} icon="arrow-right" loading={busy === "reset"} onPress={reset} />
             <Button title="Back to Sign In" variant="ghost" icon={null} onPress={() => setForgot(false)} />
           </Card>
         ) : (
@@ -153,7 +153,7 @@ export default function Login() {
                   </Pressable>
                 ) : null}
               </View>
-              <Button title={up ? "Create Account" : "Sign In"} loading={busy === email || busy === "up"}
+              <Button title={up ? "Create Account" : "Sign In"} style={{ alignSelf: "stretch" }} loading={busy === email || busy === "up"}
                 onPress={() => (up ? signUpPassword() : signIn(email, password))} />
 
             {!up ? (
@@ -162,7 +162,7 @@ export default function Login() {
               </T>
             ) : null}
 
-            <Button title={up ? "Have an account? Sign in" : "New here? Create an account"} variant="ghost" icon={null}
+            <Button title={up ? "Have an account? Sign in" : "New here? Create an account"} variant="ghost" icon={null} style={{ alignSelf: "center" }}
               onPress={() => { setMode(up ? "in" : "up"); setNotice(null); }} />
           </Card>
         )}

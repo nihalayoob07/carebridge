@@ -1,10 +1,10 @@
 // CareBridge UI kit.
 // Rules: OKLCH palette (lib/theme), alpha borders, one radius scale where nested radius = outer - padding,
 // Phosphor light icons, Geist text + Anton display, motion on transform/opacity only, reduced-motion aware.
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Children, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   AccessibilityInfo, ActivityIndicator, Animated, Easing, Platform, Pressable, RefreshControl, ScrollView,
-  StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
+  StyleSheet, Text, TextInput, View, useWindowDimensions, type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C, F, R, nest } from "@/lib/theme";
@@ -66,6 +66,22 @@ export function Screen({ children, scroll = true, onRefresh, refreshing = false,
           </ScrollView>
         ) : inner}
       </SafeAreaView>
+    </View>
+  );
+}
+
+/** True on desktop-width screens. */
+export const useWide = () => useWindowDimensions().width >= 1024;
+
+/** Responsive grid: as many columns of at least `min` px as fit, so wide screens don't leave empty margins. */
+export function Grid({ children, min = 360, gap = 14, style }: { children: ReactNode; min?: number; gap?: number; style?: StyleProp<ViewStyle> }) {
+  const [w, setW] = useState(0);
+  const cols = w ? Math.max(1, Math.floor((w + gap) / (min + gap))) : 1;
+  const items = Children.toArray(children);
+  const colW = cols === 1 ? undefined : (w - gap * (cols - 1)) / cols;
+  return (
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={[{ flexDirection: "row", flexWrap: "wrap", gap }, style]}>
+      {items.map((c, i) => <View key={i} style={colW ? { width: colW } : { width: "100%" }}>{c}</View>)}
     </View>
   );
 }
@@ -408,7 +424,8 @@ export async function confirmMsg(title: string, msg: string): Promise<boolean> {
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
-  screenInner: { paddingHorizontal: 20, paddingTop: 12, width: "100%", maxWidth: 1040, alignSelf: "center" },
+  // Phones: 20px gutters. Desktop: up to 1440px wide with proportional gutters; lists use <Grid> to fill it.
+  screenInner: { paddingHorizontal: web ? ("clamp(20px, 4vw, 64px)" as any) : 20, paddingTop: 12, width: "100%", maxWidth: 1440, alignSelf: "center" },
   display: { fontFamily: F.display, fontSize: 60, lineHeight: 62, color: C.sage, textTransform: "uppercase", letterSpacing: -0.5 },
   h1: { fontFamily: F.regular, fontSize: 34, lineHeight: 40, color: C.ink, letterSpacing: -1 },
   h2: { fontFamily: F.medium, fontSize: 22, lineHeight: 28, color: C.ink, letterSpacing: -0.4 },

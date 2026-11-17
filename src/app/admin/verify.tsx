@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { supabase, type Caregiver } from "@/lib/supabase";
 import { CAREGIVER_TYPES } from "@/lib/theme";
-import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg, Segmented } from "@/components/ui";
+import { Avatar, Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg, Segmented, Grid } from "@/components/ui";
 
 export default function Verify() {
   const [list, setList] = useState<Caregiver[]>([]);
@@ -25,7 +25,7 @@ export default function Verify() {
     <Screen>
       <Header title="Caregiver verification" />
       <Segmented label="Show" value={show} onChange={setShow} options={[{ value: "pending", label: "Pending", icon: "clock" }, { value: "all", label: "Everyone", icon: "users" }]} />
-      <View style={{ gap: 12, marginTop: 20 }}>
+      <Grid min={420} style={{ marginTop: 20 }}>
         {list.map((c) => (
           <Card key={c.id} style={{ gap: 12 }}>
             <Row style={{ alignItems: "flex-start" }}>
@@ -49,7 +49,7 @@ export default function Verify() {
           </Card>
         ))}
         {!list.length ? <Empty icon="shield" text="Nobody is waiting for verification." /> : null}
-      </View>
+      </Grid>
     </Screen>
   );
 }

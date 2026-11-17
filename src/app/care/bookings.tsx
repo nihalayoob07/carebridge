@@ -5,7 +5,7 @@ import { supabase, type Booking } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { day, inr, time } from "@/lib/format";
 import { C } from "@/lib/theme";
-import { Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg, confirmMsg, Segmented } from "@/components/ui";
+import { Badge, Button, Card, Chip, Chips, Empty, Header, Row, Screen, T, alertMsg, confirmMsg, Segmented, Grid } from "@/components/ui";
 
 const TONE: Record<string, "ok" | "warn" | "danger" | "sage"> = { confirmed: "ok", pending: "warn", cancelled: "danger", completed: "sage" };
 const RAIL: Record<string, string> = { confirmed: C.ok, pending: C.warn, cancelled: C.danger, completed: C.sage };
@@ -33,7 +33,7 @@ export default function CareBookings() {
     <Screen>
       <Header eyebrow={`Earned ${inr(earned)}`} title="Bookings" />
       <Segmented label="Filter" value={filter} onChange={setFilter} options={["all", "pending", "confirmed", "completed", "cancelled"].map((s) => ({ value: s, label: s[0]!.toUpperCase() + s.slice(1) }))} />
-      <View style={{ gap: 12, marginTop: 20 }}>
+      <Grid min={400} style={{ marginTop: 20 }}>
         {shown.map((b) => (
           <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 10 }}>
             <Row style={{ justifyContent: "space-between" }}>
@@ -53,7 +53,7 @@ export default function CareBookings() {
           </Card>
         ))}
         {!shown.length ? <Empty icon="calendar" text="No bookings in this view." /> : null}
-      </View>
+      </Grid>
     </Screen>
   );
 }

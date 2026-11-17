@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { supabase, type Booking } from "@/lib/supabase";
 import { day, inr } from "@/lib/format";
 import { C } from "@/lib/theme";
-import { Badge, Card, Empty, Header, Row, Screen, T } from "@/components/ui";
+import { Badge, Card, Empty, Header, Row, Screen, T, Grid } from "@/components/ui";
 
 const TONE: Record<string, "ok" | "warn" | "danger" | "sage"> = { confirmed: "ok", pending: "warn", cancelled: "danger", completed: "sage" };
 const RAIL: Record<string, string> = { confirmed: C.ok, pending: C.warn, cancelled: C.danger, completed: C.sage };
@@ -17,7 +17,7 @@ export default function AdminBookings() {
   return (
     <Screen>
       <Header title="All bookings" />
-      <View style={{ gap: 12, marginTop: 12 }}>
+      <Grid min={400} style={{ marginTop: 12 }}>
         {list.map((b) => (
           <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 6 }}>
             <Row style={{ justifyContent: "space-between" }}>
@@ -32,7 +32,7 @@ export default function AdminBookings() {
           </Card>
         ))}
         {!list.length ? <Empty icon="calendar" text="No bookings yet." /> : null}
-      </View>
+      </Grid>
     </Screen>
   );
 }
