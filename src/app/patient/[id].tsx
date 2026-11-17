@@ -186,7 +186,7 @@ function Records({ p, owner, onChange }: { p: Patient; owner: boolean; onChange:
           {busy ? <Row><ActivityIndicator color={C.deep} /><T v="strong">{busy}</T></Row> : (
             <Row style={{ flexWrap: "wrap" }}>
               <Button small title="PDF / file" icon="attach" onPress={() => upload("file")} />
-              {Platform.OS !== "web" ? <Button small variant="outline" title="Camera" icon="camera" onPress={() => upload("camera")} /> : null}
+              <Button small variant="outline" title="Camera" icon="camera" onPress={() => upload("camera")} />
               <Button small variant="outline" title="Photo" icon="image" onPress={() => upload("library")} />
             </Row>
           )}

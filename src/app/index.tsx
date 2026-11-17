@@ -74,7 +74,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
               ))}
             </Row>
           ) : null}
-          <Button title={signedIn ? "Dashboard" : "Sign In"} variant="outline" small onPress={go} />
+          <Button title={signedIn ? "Dashboard" : "Sign In"} variant="outline" small onPress={go} style={{ alignSelf: "center" }} />
         </View>
       </View>
 
@@ -207,7 +207,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
           <Reveal style={{ width: mid ? "42%" : "100%" }}>
             <Bezel>
               <Image source={FAMILY} accessibilityLabel="A daughter living abroad reading an update about her mother on her phone"
-                style={{ width: "100%", aspectRatio: 4 / 5, borderRadius: 26 }} resizeMode="cover" />
+                style={{ width: "100%", aspectRatio: mid ? 4 / 5 : 4 / 3, borderRadius: 26 }} resizeMode="cover" />
             </Bezel>
           </Reveal>
           <Reveal delay={120} style={{ flex: 1, gap: 24 }}>

@@ -64,9 +64,9 @@ export default function Book() {
       <Section title="Plan">
         <Chips>{Object.keys(PLAN_UNIT).map((p) => <Chip key={p} label={p} active={plan === p} onPress={() => { setPlan(p); setUnits(p === "hourly" ? 4 : 1); }} />)}</Chips>
         <Row>
-          <Button small variant="outline" title="−" icon={null} onPress={() => setUnits(Math.max(1, units - 1))} />
+          <Button small variant="outline" title="−" label="Fewer" icon={null} style={{ alignSelf: "center" }} onPress={() => setUnits(Math.max(1, units - 1))} />
           <T style={{ fontFamily: F.display, fontSize: 32, color: C.deep, minWidth: 50, textAlign: "center" }}>{units}</T>
-          <Button small variant="outline" title="+" icon={null} onPress={() => setUnits(units + 1)} />
+          <Button small variant="outline" title="+" label="More" icon={null} style={{ alignSelf: "center" }} onPress={() => setUnits(units + 1)} />
           <T v="strong">{PLAN_UNIT[plan]!.label}</T>
         </Row>
       </Section>
@@ -86,7 +86,7 @@ export default function Book() {
       </Section>
 
       <Section title="Notes for the caregiver">
-        <Input value={notes} onChangeText={setNotes} placeholder="e.g. Please check sugar before lunch" multiline />
+        <Input value={notes} onChangeText={setNotes} placeholder="Please check sugar before lunch…" multiline />
       </Section>
 
       <Card style={{ marginTop: 24, gap: 4, backgroundColor: C.paper }}>

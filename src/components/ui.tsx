@@ -110,6 +110,7 @@ export function Button({ title, onPress, variant = "solid", icon = "arrow-right"
       accessibilityState={{ disabled: !!disabled, busy: !!loading }}
       style={(st: any) => [
         s.btn, small && s.btnSmall, iconOnly && { paddingHorizontal: 6, paddingRight: 6 },
+        !icon && !iconOnly && { paddingRight: small ? 16 : 24 }, // no trailing island: keep the label centred
         variant === "solid" && { backgroundColor: st.hovered ? "#344F31" : C.deep },
         variant === "danger" && { backgroundColor: C.danger },
         variant === "outline" && { borderWidth: 1.2, borderColor: st.hovered ? C.ink : "rgba(43,54,40,0.35)", backgroundColor: st.hovered ? "rgba(43,54,40,0.04)" : "transparent" },
@@ -121,11 +122,13 @@ export function Button({ title, onPress, variant = "solid", icon = "arrow-right"
         style,
       ]}
     >
-      {(st: any) => loading ? <ActivityIndicator color={fg} /> : (
+      {(st: any) => (
         <>
-          {title ? <Text numberOfLines={1} style={[s.btnText, small && { fontSize: 14 }, { color: fg }]}>{title}</Text> : null}
+          {/* Keep the label laid out while loading so the button keeps its size and the spinner sits dead centre. */}
+          {loading ? <View style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}><ActivityIndicator color={fg} /></View> : null}
+          {title ? <Text numberOfLines={1} style={[s.btnText, small && { fontSize: 14 }, { color: fg }, loading && { opacity: 0 }]}>{title}</Text> : null}
           {icon ? (
-            <View style={[s.island, small && { width: 26, height: 26 }, { backgroundColor: variant === "ghost" ? "transparent" : island },
+            <View style={[s.island, small && { width: 26, height: 26 }, { backgroundColor: variant === "ghost" ? "transparent" : island }, loading && { opacity: 0 },
               { transform: [{ translateX: st.hovered ? 2 : 0 }, { translateY: st.hovered && icon === "arrow-right" ? -1 : 0 }] },
               web && ({ transitionProperty: "transform", transitionDuration: "320ms", transitionTimingFunction: "cubic-bezier(0.32,0.72,0,1)" } as any)]}>
               <Icon name={icon} size={small ? 14 : 16} color={fg} weight="regular" />
@@ -234,7 +237,7 @@ export function Section({ title, action, children }: { title: string; action?: R
     <View style={{ gap: 14, marginTop: 32 }}>
       <Row style={{ justifyContent: "space-between" }}>
         <T v="h3" role="heading">{title}</T>
-        {action}
+        {action ? <View style={{ alignSelf: "center" }}>{action}</View> : null}
       </Row>
       {children}
     </View>
@@ -281,7 +284,7 @@ export function Header({ eyebrow, title, right }: { eyebrow?: string; title: str
           {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
           <T v="h1">{title}</T>
         </View>
-        {right}
+        {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
       </Row>
     </Reveal>
   );

@@ -11,7 +11,9 @@ const TONE: Record<string, "ok" | "warn" | "danger" | "neutral" | "sage"> = { co
 
 export default function Bookings() {
   const { profile } = useAuth();
-  const [list, setList] = useState<(Booking & { reviews: { id: string }[] })[]>([]);
+  const [list, setList] = useState<(Booking & { reviews: { id: string } | { id: string }[] | null })[]>([]);
+  // reviews.booking_id is unique, so PostgREST embeds a single object (or null), not an array.
+  const hasReview = (b: { reviews: unknown }) => (Array.isArray(b.reviews) ? b.reviews.length > 0 : !!b.reviews);
   const [filter, setFilter] = useState("all");
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
@@ -34,7 +36,7 @@ export default function Bookings() {
       booking_id: b.id, caregiver_id: b.caregiver_id, author_id: profile!.id,
       author_name: profile!.name.split(" ")[0] + " " + (profile!.name.split(" ")[1]?.[0] ?? "") + ".", rating, comment,
     });
-    if (error) return alertMsg("Couldn't save review", error.message);
+    if (error) return alertMsg("Couldn't save review", error.code === "23505" ? "You have already reviewed this booking." : `${error.message}. Try again in a moment.`);
     setReviewing(null); setComment(""); load();
   };
 
@@ -61,7 +63,7 @@ export default function Bookings() {
             <Row style={{ flexWrap: "wrap" }}>
               {b.status === "pending" && b.payment_status === "unpaid" ? <Button small title="Pay now" icon="card" onPress={() => router.push(`/pay/${b.id}`)} /> : null}
               {["pending", "confirmed"].includes(b.status) ? <Button small variant="outline" title="Cancel" icon="close" onPress={() => cancel(b.id)} /> : null}
-              {["confirmed", "completed"].includes(b.status) && !b.reviews?.length ? <Button small variant="outline" title="Review" icon="star" onPress={() => setReviewing(b.id)} /> : null}
+              {["confirmed", "completed"].includes(b.status) && !hasReview(b) ? <Button small variant="outline" title="Review" icon="star" onPress={() => setReviewing(b.id)} /> : null}
               <Button small variant="ghost" title="Caregiver" onPress={() => router.push(`/caregiver/${b.caregiver_id}`)} />
             </Row>
             {reviewing === b.id ? (
