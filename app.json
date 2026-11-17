@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "carebridge",
+    "name": "CareBridge",
     "slug": "carebridge",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,15 +11,51 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#E5E8CE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.carebridge.app",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro",
+      "name": "CareBridge",
+      "themeColor": "#E5E8CE",
+      "backgroundColor": "#E5E8CE"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CareBridge uses the camera to scan patient health ID QR codes."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "CareBridge records your location when you check in and out of a care visit."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CareBridge lets you upload photos of prescriptions and reports."
+        }
+      ]
+    ],
+    "scheme": "carebridge",
+    "backgroundColor": "#E5E8CE"
   }
 }
