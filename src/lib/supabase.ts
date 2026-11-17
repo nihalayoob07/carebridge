@@ -8,7 +8,9 @@ export const supabase = createClient(process.env.EXPO_PUBLIC_SUPABASE_URL!, proc
     storage: Platform.OS === "web" ? undefined : AsyncStorage, // web uses localStorage
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // PKCE: OAuth, magic links and password-reset links come back with ?code=, which web picks up automatically.
+    flowType: "pkce",
+    detectSessionInUrl: Platform.OS === "web",
   },
 });
 
