@@ -15,15 +15,24 @@
     <link rel="icon" href="/favicon.ico" />
     <title>CareBridge</title>
     <style id="expo-reset">
-      html, body { height: 100%; background: #E5E8CE; }
+      /* --app-h is the real visible height, set from window.innerHeight below. 100vh/100dvh are wrong on iPhone:
+         the home-screen web app counts the status bar in them, and Safari's floating toolbar covers their bottom. */
+      html, body { height: 100%; height: var(--app-h, 100dvh); background: #E5E8CE; }
       /* iOS Safari inflates small text (e.g. 12px tab labels) unless told not to; inflated labels overflow their line box and get clipped. */
       html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-      /* dvh tracks the visible viewport as Safari's toolbars show and hide. */
-      @supports (height: 100dvh) { html, body { height: 100dvh; } }
       body { overflow: hidden; margin: 0; -webkit-tap-highlight-color: rgba(120, 149, 117, 0.2); }
       #root { display: flex; height: 100%; flex: 1; }
       button, [role="button"], a { touch-action: manipulation; }
     </style>
+    <script>
+      (function () {
+        var set = function () { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); };
+        set();
+        window.addEventListener('resize', set);
+        window.addEventListener('orientationchange', function () { setTimeout(set, 250); });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', set);
+      })();
+    </script>
   </head>
   <body>
     <noscript>CareBridge needs JavaScript to run.</noscript>
