@@ -10,6 +10,7 @@ import { Button, Eyebrow, IconCircle, Loading, Reveal, Row, T, type IconName } f
 import { HealthIdCard } from "@/components/blocks";
 import { Icon } from "@/components/icon";
 import { Logo } from "@/components/logo";
+import { GetAppCards } from "@/components/get-app";
 
 const APK_URL = process.env.EXPO_PUBLIC_APK_URL;
 const HERO = require("../../assets/images/hero.webp");
@@ -109,7 +110,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
           <Logo height={mid ? 30 : 24} />
           {wide ? (
             <Row gap={36}>
-              {[["Families", "/login"], ["Caregivers", "/login"], ["Health ID", "/scan"]].map(([l, href]) => (
+              {[["Families", "/login"], ["Caregivers", "/login"], ["Health ID", "/scan"], ["Get the App", "/download"]].map(([l, href]) => (
                 <Pressable key={l} accessibilityRole="link" onPress={() => router.push(href as any)}
                   style={(st: any) => ({ opacity: st.hovered ? 0.65 : 1 })}>
                   <Text style={{ fontFamily: F.medium, fontSize: 14.5, color: C.ink }}>{l}</Text>
@@ -244,6 +245,22 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
         </View>
       </View>
 
+      {/* get the app */}
+      <View nativeID="get-app" style={{ paddingHorizontal: pad, paddingBottom: mid ? 112 : 64, alignItems: "center" }}>
+        <View style={{ width: "100%", maxWidth: 1080, gap: 28 }}>
+          <Reveal style={{ gap: 12 }}>
+            <Eyebrow>Android and iPhone</Eyebrow>
+            <Text accessibilityRole="header" style={{ fontFamily: F.display, fontSize: mid ? 72 : 46, lineHeight: mid ? 72 : 48, color: C.deep, textTransform: "uppercase" }}>
+              Get the app
+            </Text>
+            <T style={{ color: C.muted, maxWidth: 560, fontSize: 17 }}>
+              Install CareBridge on Android, or add it to your iPhone's Home Screen. It takes under a minute.
+            </T>
+          </Reveal>
+          <GetAppCards />
+        </View>
+      </View>
+
       {/* closing manifesto */}
       <View style={{ paddingHorizontal: pad, paddingVertical: mid ? 120 : 72, alignItems: "center", backgroundColor: C.bgDeep }}>
         <Reveal style={{ alignItems: "center", gap: 24 }}>
@@ -255,7 +272,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
           </T>
           <Row gap={12} style={{ flexWrap: "wrap", justifyContent: "center" }}>
             <Button title="Get Started" onPress={go} />
-            {APK_URL ? <Button title="Android App" variant="outline" icon="android" onPress={() => Linking.openURL(APK_URL)} /> : null}
+            <Button title="Get the App" variant="outline" icon="download" onPress={() => router.push("/download")} />
           </Row>
         </Reveal>
       </View>
@@ -264,7 +281,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
         <Row style={{ width: "100%", maxWidth: 1280, justifyContent: "space-between", flexWrap: "wrap" }}>
           <T v="small">© 2026 CareBridge. Made in India for families everywhere.</T>
           <Row gap={22} style={{ flexWrap: "wrap" }}>
-            {([["/privacy", "Privacy Policy", "lock"], ["/terms", "Terms of Service", "scales"], ["/scan", "Scan a Health ID", "qr"]] as const).map(([href, label, icon]) => (
+            {([["/download", "Get the App", "download"], ["/privacy", "Privacy Policy", "lock"], ["/terms", "Terms of Service", "scales"], ["/scan", "Scan a Health ID", "qr"]] as const).map(([href, label, icon]) => (
               <Pressable key={href} accessibilityRole="link" onPress={() => router.push(href)} style={(st: any) => ({ opacity: st.hovered ? 0.6 : 1 })}>
                 <Row gap={8}><Icon name={icon} size={16} color={C.muted} /><T v="small">{label}</T></Row>
               </Pressable>

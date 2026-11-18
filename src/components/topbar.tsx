@@ -37,6 +37,7 @@ export function TopBar({ base, items }: { base: string; items: NavItem[] }) {
     ...items.map((t) => ({ key: t.name, label: t.title, icon: t.icon, on: t.name === active.name, onPress: () => go(hrefOf(t.name)) })),
   ];
   const extra: typeof links = [
+    { key: "app", label: "Get the App", icon: "download" as IconName, onPress: () => go("/download") },
     { key: "privacy", label: "Privacy Policy", icon: "lock" as IconName, onPress: () => go("/privacy") },
     { key: "terms", label: "Terms of Service", icon: "scales" as IconName, onPress: () => go("/terms") },
     { key: "out", label: "Sign Out", icon: "sign-out" as IconName, onPress: async () => { setOpen(false); await supabase.auth.signOut(); router.replace("/login"); } },
