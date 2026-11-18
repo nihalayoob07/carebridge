@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { homeFor, useAuth } from "@/lib/auth";
 import { savePending, sendPasswordReset, signInWithGoogle } from "@/lib/auth-actions";
 import { C, CITIES, F, R } from "@/lib/theme";
-import { Avatar, Button, Card, Check, Eyebrow, Input, Row, Screen, Segmented, T, alertMsg } from "@/components/ui";
+import { Avatar, Button, Card, Check, Eyebrow, Input, Row, Screen, Segmented, T, alertMsg, useWide } from "@/components/ui";
 
 // Seeded demo accounts (see supabase/seed.sql).
 const DEMO_PASSWORD = "carebridge123";
@@ -23,6 +23,7 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
 export default function Login() {
   const { session, profile } = useAuth();
+  const wide = useWide();
   const params = useLocalSearchParams<{ forgot?: string }>();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [forgot, setForgot] = useState(params.forgot === "1");
@@ -90,6 +91,9 @@ export default function Login() {
         <T style={{ fontFamily: F.display, fontSize: 22, color: C.deep, letterSpacing: 1 }}>CAREBRIDGE</T>
         <Button title="Home" variant="ghost" small icon={null} onPress={() => router.replace("/")} />
       </Row>
+      {/* Centred block. Desktop: form left, demo accounts right. Phone: one column. */}
+      <View style={{ flexDirection: wide ? "row" : "column", justifyContent: "center", alignItems: wide ? "flex-start" : "center", gap: wide ? 64 : 0, width: "100%" }}>
+      <View style={{ width: "100%", maxWidth: 520 }}>
       <View style={{ marginTop: 24, marginBottom: 24 }}>
         <T v="display" style={{ fontSize: 56, lineHeight: 56 }}>{forgot ? "Reset password" : up ? "Join CareBridge" : "Welcome back"}</T>
         <T v="small" style={{ fontSize: 16, marginTop: 8 }}>Elder care for the people who raised you.</T>
@@ -102,7 +106,7 @@ export default function Login() {
         </Card>
       ) : null}
 
-      <View style={{ width: "100%", maxWidth: 520 }}>
+      <View>
         {forgot ? (
           <Card style={{ gap: 14 }}>
             <T v="small" style={{ color: C.ink }}>Enter your email and we'll send you a link to choose a new password.</T>
@@ -167,8 +171,9 @@ export default function Login() {
           </Card>
         )}
       </View>
+      </View>
 
-      <View style={{ marginTop: 32, gap: 12 }}>
+      <View style={{ width: "100%", maxWidth: 520, marginTop: wide ? 150 : 32, gap: 12 }}>
         <Eyebrow>One-tap demo accounts</Eyebrow>
         {DEMOS.map((d) => (
           <Card key={d.email} variant="ticket" tone="paper" accent={d.role === "Family" ? C.sage : d.role === "Caregiver" ? C.deep : C.warn}
@@ -183,6 +188,7 @@ export default function Login() {
             </Row>
           </Card>
         ))}
+      </View>
       </View>
 
       <Row gap={18} style={{ marginTop: 36, justifyContent: "center", flexWrap: "wrap" }}>

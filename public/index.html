@@ -15,6 +15,8 @@
     <title>CareBridge</title>
     <style id="expo-reset">
       html, body { height: 100%; background: #E5E8CE; }
+      /* iOS Safari inflates small text (e.g. 12px tab labels) unless told not to; inflated labels overflow their line box and get clipped. */
+      html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
       /* dvh tracks the visible viewport as Safari's toolbars show and hide. */
       @supports (height: 100dvh) { html, body { height: 100dvh; } }
       body { overflow: hidden; margin: 0; -webkit-tap-highlight-color: rgba(120, 149, 117, 0.2); }

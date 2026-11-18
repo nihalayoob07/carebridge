@@ -157,8 +157,11 @@ export function RoleTabs({ tabs, base }: { tabs: TabDef[]; base: string }) {
         tabBarActiveTintColor: C.deep,
         tabBarInactiveTintColor: "#6F7968",
         // Height grows with the home-indicator inset so labels never clip.
-        tabBarStyle: wide ? { display: "none" } : { backgroundColor: C.paper, borderTopColor: C.lineSoft, height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom },
-        tabBarLabelStyle: { fontFamily: F.medium, fontSize: 12, lineHeight: 16, marginTop: 2 },
+        // On web the inset comes straight from CSS env() (home indicator in the iOS web app); native uses the measured inset.
+        tabBarStyle: wide ? { display: "none" } : Platform.OS === "web"
+          ? ({ backgroundColor: C.paper, borderTopColor: C.lineSoft, height: "calc(74px + env(safe-area-inset-bottom))", paddingTop: 8, paddingBottom: "calc(14px + env(safe-area-inset-bottom))" } as any)
+          : { backgroundColor: C.paper, borderTopColor: C.lineSoft, height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom },
+        tabBarLabelStyle: { fontFamily: F.medium, fontSize: 12, lineHeight: 18, marginTop: 2 },
         tabBarItemStyle: { paddingVertical: 2 },
         sceneStyle: { backgroundColor: C.bg },
       }}
