@@ -21,7 +21,7 @@ export default function AdminBookings() {
         {list.map((b) => (
           <Card key={b.id} variant="ticket" tone="paper" accent={RAIL[b.status]} style={{ gap: 6 }}>
             <Row style={{ justifyContent: "space-between" }}>
-              <T v="strong" style={{ flex: 1 }} numberOfLines={1}>{b.caregivers?.profiles.name} for {b.patients?.name}</T>
+              <T v="strong" style={{ flex: 1 }} numberOfLines={1}>{b.caregivers?.profiles.name} for {b.patients?.name ?? (b as any).patient_label ?? "a patient"}</T>
               <Badge label={b.status} tone={TONE[b.status]} />
             </Row>
             <T v="small">Booked by {b.profiles?.name}. {day(b.start_at)}, {b.units} × {b.plan}</T>

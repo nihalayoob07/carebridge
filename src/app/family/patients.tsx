@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+import { createElement, useCallback, useEffect, useState } from "react";
+import { Platform, View } from "react-native";
 import { supabase, type Patient } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { age } from "@/lib/format";
@@ -46,7 +46,17 @@ export default function Patients() {
         <Card style={{ gap: 12, marginTop: 8 }}>
           <T v="h3">New patient</T>
           <Input label="Full name" value={f.name} onChangeText={set("name")} placeholder="Saraswathi Menon" />
-          <Input label="Date of birth (YYYY-MM-DD)" value={f.dob} onChangeText={set("dob")} placeholder="1947-03-12" />
+          {Platform.OS === "web" ? (
+            // Browser date picker instead of typing YYYY-MM-DD.
+            <View style={{ gap: 6 }}>
+              <T v="small" style={{ fontFamily: F.medium, color: C.ink }}>Date of birth</T>
+              {createElement("input", { type: "date", value: f.dob, max: new Date().toISOString().slice(0, 10), "aria-label": "Date of birth",
+                onChange: (e: any) => set("dob")(e.target.value),
+                style: { fontFamily: F.regular, fontSize: 16, color: C.ink, padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(23,33,19,0.12)", background: "rgba(255,255,255,0.6)", minHeight: 48 } })}
+            </View>
+          ) : (
+            <Input label="Date of birth (YYYY-MM-DD)" value={f.dob} onChangeText={set("dob")} placeholder="1947-03-12" keyboardType="numbers-and-punctuation" />
+          )}
           <T v="label">Gender</T>
           <Segmented label="Gender" value={f.gender} onChange={set("gender")} options={[{ value: "female", label: "Female" }, { value: "male", label: "Male" }, { value: "other", label: "Other" }]} />
           <T v="label">Blood group</T>

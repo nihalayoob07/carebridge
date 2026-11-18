@@ -163,6 +163,8 @@ export function RoleTabs({ tabs, base }: { tabs: TabDef[]; base: string }) {
 }
 
 export function SignOut() {
+  // Desktop has Sign Out in the top-bar menu; showing it twice is noise.
+  if (Platform.OS === "web" && useWindowDimensions().width >= 1024) return null;
   return (
     <Pressable onPress={async () => { await supabase.auth.signOut(); router.replace("/login"); }} hitSlop={10}
       accessibilityRole="button" accessibilityLabel="Sign out"

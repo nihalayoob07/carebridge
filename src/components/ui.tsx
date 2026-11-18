@@ -199,7 +199,7 @@ export function Segmented<V extends string>({ options, value, onChange, label }:
         const on = o.value === value;
         return (
           <Pressable key={o.value} onPress={() => onChange(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }}
-            style={(st: any) => [{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, minHeight: 38,
+            style={(st: any) => [{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 8, minHeight: 44,
               borderRadius: nest(TRAY, PAD) },
               on ? { backgroundColor: C.paper, boxShadow: "0 1px 2px rgba(23,33,19,0.12), 0 4px 12px -6px rgba(23,33,19,0.25)" } as any
                 : st.hovered && { backgroundColor: "rgba(255,255,255,0.45)" },
@@ -437,7 +437,7 @@ const s = StyleSheet.create({
   label: { fontFamily: F.semi, fontSize: 11, letterSpacing: 2, color: C.ink, textTransform: "uppercase" },
   eyebrowText: { fontFamily: F.medium, fontSize: 11, letterSpacing: 2.2, textTransform: "uppercase", color: C.ink },
   btn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12, borderRadius: R.pill, paddingLeft: 24, paddingRight: 8, minHeight: 52, alignSelf: "flex-start" },
-  btnSmall: { minHeight: 40, paddingLeft: 16, paddingRight: 6, gap: 8 },
+  btnSmall: { minHeight: 44, paddingLeft: 16, paddingRight: 8, gap: 8 },
   btnText: { fontFamily: F.medium, fontSize: 16, letterSpacing: -0.1 },
   island: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   focus: { outlineWidth: 2, outlineStyle: "solid", outlineColor: C.sage, outlineOffset: 2 } as any,
@@ -447,7 +447,7 @@ const s = StyleSheet.create({
   tag: { borderRadius: R.xs, borderWidth: 1, borderColor: C.line, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start", backgroundColor: "rgba(255,255,255,0.35)" },
   tagText: { fontFamily: F.medium, fontSize: 12.5, color: C.ink },
   chip: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: R.sm, borderWidth: 1, borderColor: C.line, paddingHorizontal: 13, paddingVertical: 8,
-    backgroundColor: "rgba(255,255,255,0.5)", minHeight: 38 },
+    backgroundColor: "rgba(255,255,255,0.5)", minHeight: 44 },
   chipText: { fontFamily: F.medium, fontSize: 14, color: C.ink },
   inputLabel: { fontFamily: F.medium, fontSize: 14, color: C.ink },
   input: { backgroundColor: "rgba(255,255,255,0.6)", borderWidth: 1, borderColor: C.line, borderRadius: R.md, paddingHorizontal: 16, paddingVertical: 13, fontSize: 16, fontFamily: F.regular, color: C.ink },
