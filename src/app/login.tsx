@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { homeFor, useAuth } from "@/lib/auth";
 import { savePending, sendPasswordReset, signInWithGoogle } from "@/lib/auth-actions";
 import { C, CITIES, F, R } from "@/lib/theme";
-import { Avatar, Button, Card, Check, Eyebrow, Input, Row, Screen, Segmented, T, alertMsg, useWide } from "@/components/ui";
+import { Avatar, Button, Card, Check, Eyebrow, Input, Row, Screen, Segmented, T, alertMsg } from "@/components/ui";
+import { Logo } from "@/components/logo";
 
 // Seeded demo accounts (see supabase/seed.sql).
 const DEMO_PASSWORD = "carebridge123";
@@ -23,7 +24,6 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
 export default function Login() {
   const { session, profile } = useAuth();
-  const wide = useWide();
   const params = useLocalSearchParams<{ forgot?: string }>();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [forgot, setForgot] = useState(params.forgot === "1");
@@ -88,11 +88,11 @@ export default function Login() {
   return (
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
-        <T style={{ fontFamily: F.display, fontSize: 22, color: C.deep, letterSpacing: 1 }}>CAREBRIDGE</T>
+        <Logo height={26} href="/" />
         <Button title="Home" variant="ghost" small icon={null} onPress={() => router.replace("/")} />
       </Row>
-      {/* Centred block. Desktop: form left, demo accounts right. Phone: one column. */}
-      <View style={{ flexDirection: wide ? "row" : "column", justifyContent: "center", alignItems: wide ? "flex-start" : "center", gap: wide ? 64 : 0, width: "100%" }}>
+      {/* One centred column: heading, form, then the demo accounts. */}
+      <View style={{ alignItems: "center", width: "100%" }}>
       <View style={{ width: "100%", maxWidth: 520 }}>
       <View style={{ marginTop: 24, marginBottom: 24 }}>
         <T v="display" style={{ fontSize: 56, lineHeight: 56 }}>{forgot ? "Reset password" : up ? "Join CareBridge" : "Welcome back"}</T>
@@ -173,7 +173,7 @@ export default function Login() {
       </View>
       </View>
 
-      <View style={{ width: "100%", maxWidth: 520, marginTop: wide ? 150 : 32, gap: 12 }}>
+      <View style={{ width: "100%", maxWidth: 520, marginTop: 32, gap: 12 }}>
         <Eyebrow>One-tap demo accounts</Eyebrow>
         {DEMOS.map((d) => (
           <Card key={d.email} variant="ticket" tone="paper" accent={d.role === "Family" ? C.sage : d.role === "Caregiver" ? C.deep : C.warn}

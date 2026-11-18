@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { C, F, R, nest } from "@/lib/theme";
 import { Icon, type IconName } from "./icon";
 import { Avatar, EASE } from "./ui";
+import { Logo } from "./logo";
 
 export type NavItem = { name: string; title: string; icon: IconName };
 const web = Platform.OS === "web";
@@ -53,12 +54,7 @@ export function TopBar({ base, items }: { base: string; items: NavItem[] }) {
         <View style={[{ height: 60, borderRadius: BAR, flexDirection: "row", alignItems: "center", paddingLeft: 18, paddingRight: 6, gap: 14,
           backgroundColor: "rgba(247,248,238,0.78)", borderWidth: 1, borderColor: C.lineSoft },
           web && ({ backdropFilter: "blur(16px) saturate(140%)", WebkitBackdropFilter: "blur(16px) saturate(140%)", boxShadow: "0 14px 40px -26px rgba(46,70,43,0.5)" } as any)]}>
-          <Pressable onPress={() => go(base)} accessibilityRole="link" accessibilityLabel="CareBridge home" style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <View style={{ width: 22, height: 22, flexDirection: "row", flexWrap: "wrap", gap: 3 }}>
-              {[0, 1, 2, 3].map((i) => <View key={i} style={{ width: 9.5, height: 9.5, borderRadius: 5, backgroundColor: C.deep }} />)}
-            </View>
-            <Text style={{ fontFamily: F.display, fontSize: 18, color: C.deep, letterSpacing: 1 }}>CAREBRIDGE</Text>
-          </Pressable>
+          <Logo height={26} href={base} />
           <View style={{ width: 1, height: 22, backgroundColor: C.line }} />
           <Icon name={active.icon} size={18} color={C.muted} />
           <Text style={{ fontFamily: F.medium, fontSize: 15, color: C.ink }}>{active.title}</Text>

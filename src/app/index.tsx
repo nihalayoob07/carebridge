@@ -9,6 +9,7 @@ import { C, F } from "@/lib/theme";
 import { Button, Eyebrow, IconCircle, Loading, Reveal, Row, T, type IconName } from "@/components/ui";
 import { HealthIdCard } from "@/components/blocks";
 import { Icon } from "@/components/icon";
+import { Logo } from "@/components/logo";
 
 const APK_URL = process.env.EXPO_PUBLIC_APK_URL;
 const HERO = require("../../assets/images/hero.webp");
@@ -105,12 +106,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
         <View style={{ width: "100%", maxWidth: wide ? undefined : 1280, flexDirection: "row", alignItems: "center", justifyContent: "space-between",
           height: 64, paddingLeft: 18, paddingRight: 8, borderRadius: 999, backgroundColor: "rgba(247,248,238,0.6)",
           borderWidth: 1, borderColor: "rgba(43,54,40,0.08)", boxShadow: "0 12px 40px -24px rgba(62,90,59,0.4)" } as any}>
-          <Row gap={10}>
-            <View accessibilityElementsHidden style={{ width: 26, height: 26, flexDirection: "row", flexWrap: "wrap", gap: 4 }}>
-              {[0, 1, 2, 3].map((i) => <View key={i} style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: C.deep }} />)}
-            </View>
-            <Text style={{ fontFamily: F.display, fontSize: 20, color: C.deep, letterSpacing: 1 }}>CAREBRIDGE</Text>
-          </Row>
+          <Logo height={mid ? 30 : 24} />
           {wide ? (
             <Row gap={36}>
               {[["Families", "/login"], ["Caregivers", "/login"], ["Health ID", "/scan"]].map(([l, href]) => (

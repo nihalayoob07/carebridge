@@ -12,9 +12,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E5E8CE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.carebridge.app",
@@ -68,6 +66,11 @@
         "projectId": "89249618-9970-48a0-93f3-a8b797be8a33"
       }
     },
-    "owner": "nihalayoob"
+    "owner": "nihalayoob",
+    "splash": {
+      "image": "./assets/images/mark.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E5E8CE"
+    }
   }
 }
