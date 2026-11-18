@@ -7,6 +7,7 @@ import { supabase, type Med } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { C, F } from "@/lib/theme";
 import { Badge, Button, Card, Chips, Empty, Loading, Row, Screen, Section, T } from "@/components/ui";
+import { BackHeader } from "@/components/blocks";
 
 type CardData = {
   patient_id: string; health_id: string; name: string; age: number | null; gender: string | null; blood_group: string | null;
@@ -27,11 +28,13 @@ export default function EmergencyCard() {
   }, [session, d]);
 
   if (d === undefined) return <Loading />;
-  if (!d) return <Screen><Empty icon="alert" text="This health ID is not valid." /></Screen>;
+  const back = <BackHeader title={router.canGoBack() ? "Back" : "CareBridge home"} />;
+  if (!d) return <Screen>{back}<Empty icon="alert" text="This health ID is not valid." /></Screen>;
 
   const phone = d.emergency_contact?.phone;
   return (
     <Screen>
+      {back}
       <Row gap={8}><Icon name="medkit" size={18} color={C.danger} /><T v="label" color={C.danger}>Emergency medical information</T></Row>
       <T v="display" style={{ marginTop: 10, color: C.deep }}>{d.name}</T>
       <T v="strong" style={{ marginTop: 4 }}>{[d.age && `${d.age} years`, d.gender, d.health_id].filter(Boolean).join(", ")}</T>
