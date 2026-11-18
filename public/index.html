@@ -28,11 +28,15 @@
     </style>
     <script>
       (function () {
-        var set = function () { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); };
+        // Track the real visible height, but NOT while a text field is focused: the iOS keyboard shrinks
+        // innerHeight while also scrolling the page, and reacting to both leaves an empty gap above it.
+        var typing = function () { var el = document.activeElement; return !!el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName); };
+        var set = function () { if (!typing()) document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); };
         set();
         window.addEventListener('resize', set);
-        window.addEventListener('orientationchange', function () { setTimeout(set, 250); });
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', set);
+        window.addEventListener('orientationchange', function () { setTimeout(set, 300); });
+        // After the keyboard closes, settle back to the full height.
+        document.addEventListener('focusout', function () { setTimeout(set, 350); });
       })();
     </script>
   </head>

@@ -2,7 +2,7 @@
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { supabase, type Patient, type Visit } from "@/lib/supabase";
 import { time } from "@/lib/format";
 import { C, F } from "@/lib/theme";
@@ -35,6 +35,31 @@ async function getCoords() {
     const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
     return { lat: pos.coords.latitude, lng: pos.coords.longitude };
   } catch { return null; }
+}
+
+/** Blood pressure as two number-pad boxes (systolic / diastolic) so no "/" key is needed. Saved as "120/80". */
+function BPInput({ value, onSave }: { value: string; onSave: (v: string) => void }) {
+  const [s0, d0] = value.split("/");
+  const [sys, setSys] = useState(s0 ?? "");
+  const [dia, setDia] = useState(d0 ?? "");
+  const commit = (s = sys, d = dia) => onSave(s || d ? `${s}/${d}` : "");
+  const digits = (v: string) => v.replace(/\D/g, "").slice(0, 3);
+  return (
+    <View style={{ gap: 6, width: 220 }}>
+      <T v="small" style={{ fontFamily: F.medium, color: C.ink }}>BP (mmHg)</T>
+      <Row gap={8}>
+        <View style={{ flex: 1 }}>
+          <Input value={sys} onChangeText={(v) => setSys(digits(v))} onBlur={() => commit()} placeholder="120…"
+            keyboardType="number-pad" inputMode="numeric" accessibilityLabel="Systolic blood pressure" />
+        </View>
+        <Text style={{ fontFamily: F.medium, fontSize: 24, color: C.muted }}>/</Text>
+        <View style={{ flex: 1 }}>
+          <Input value={dia} onChangeText={(v) => setDia(digits(v))} onBlur={() => commit()} placeholder="80…"
+            keyboardType="number-pad" inputMode="numeric" accessibilityLabel="Diastolic blood pressure" />
+        </View>
+      </Row>
+    </View>
+  );
 }
 
 export default function VisitScreen() {
@@ -152,7 +177,8 @@ export default function VisitScreen() {
 
           <Section title="Vitals">
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-              {[["bp", "BP", "120/80"], ["sugar_fasting", "Sugar mg/dL", "110"], ["pulse", "Pulse", "72"], ["temp_c", "Temp °C", "36.8"]].map(([k, l, ph]) => (
+              <BPInput value={String(open.vitals?.bp ?? "")} onSave={vital("bp")} />
+              {[["sugar_fasting", "Sugar mg/dL", "110"], ["pulse", "Pulse", "72"], ["temp_c", "Temp °C", "36.8"]].map(([k, l, ph]) => (
                 <View key={k} style={{ width: 140 }}>
                   <Input label={l} defaultValue={String(open.vitals?.[k!] ?? "")} onEndEditing={(e) => vital(k!)(e.nativeEvent.text)}
                     onBlur={(e: any) => vital(k!)(e?.target?.value ?? e?.nativeEvent?.text ?? "")} placeholder={`${ph}…`} inputMode="decimal" />
