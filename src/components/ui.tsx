@@ -58,7 +58,8 @@ export function Screen({ children, scroll = true, onRefresh, refreshing = false,
       <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
         {scroll ? (
           <ScrollView
-            contentContainerStyle={{ paddingBottom: 72 }}
+            // Room for the floating tab island (and the home indicator) so nothing hides under it.
+            contentContainerStyle={{ paddingBottom: web ? ("calc(124px + env(safe-area-inset-bottom))" as any) : 124 }}
             keyboardShouldPersistTaps="handled"
             refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.deep} /> : undefined}
           >
