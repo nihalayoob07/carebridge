@@ -77,7 +77,8 @@ export function NotificationsFeed({ userId, limit = 6, onEvent }: { userId: stri
     const load = () => supabase.from("notifications").select("*").eq("user_id", userId)
       .order("created_at", { ascending: false }).limit(limit).then(({ data }) => setItems((data as Note[]) ?? []));
     load();
-    const ch = supabase.channel(`notes-${userId}`)
+    // Unique topic per mount: supabase.channel() returns an already-subscribed channel for a reused name, and adding .on() to it throws.
+    const ch = supabase.channel(`notes-${userId}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         () => { load(); onEvent?.(); })
       .subscribe();

@@ -51,7 +51,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   const textCol = wide ? Math.round(Math.min(420, Math.max(300, width * 0.22))) : 0;
   const sideCol = wide ? Math.round(Math.min(280, Math.max(220, width * 0.15))) : 0;
   const huge = wide
-    ? Math.floor(Math.min((width - pad * 2 - textCol - sideCol - 120) / 3.95, (height - 200) / 2.9))
+    ? Math.floor(Math.min((width - pad * 2 - textCol * 2 - 120) / 3.95, (height - 200) / 2.9))
     : mid ? 128 : Math.max(width * 0.23, 64);
   const headline = wide ? Math.round(Math.min(76, Math.max(50, width * 0.036))) : 40;
   const go = () => router.push((signedIn ? home : "/login") as any);
@@ -128,7 +128,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
           {wide ? heroText : heroVisual}
           {wide ? heroVisual : heroText}
 
-          <Reveal delay={200} style={{ width: wide ? sideCol : "100%", flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : 4 }}>
+          <Reveal delay={200} style={{ width: wide ? textCol : "100%", paddingLeft: wide ? textCol - sideCol : 0, flexDirection: wide ? "column" : "row", justifyContent: "space-between", marginTop: wide ? 0 : 4 }}>
             {PILLARS.map((p, i) => (
               <View key={p.a} style={{ flexDirection: wide ? "row" : "column", alignItems: "center", gap: 14, paddingVertical: 20,
                 borderTopWidth: wide && i ? 1 : 0, borderColor: C.line, flex: wide ? undefined : 1 }}>
