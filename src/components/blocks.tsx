@@ -144,32 +144,52 @@ export function HealthIdCard({ p, compact }: { p: Pick<Patient, "name" | "dob" |
 }
 
 type TabDef = { name: string; title: string; icon: IconName };
-export function RoleTabs({ tabs, base }: { tabs: TabDef[]; base: string }) {
+/**
+ * Our own bottom tab bar. The library bar sizes its items from a fixed height, which on iPhone disagreed
+ * with the safe-area padding and clipped the labels. This one has no fixed heights: it grows to fit
+ * icon + label, then adds the home-indicator inset (CSS env() on web, measured inset on native).
+ */
+function BottomBar({ state, emitter, navigateToTab, tabs }: { state: any; emitter: any; navigateToTab: (key: string) => void; tabs: TabDef[] }) {
   const insets = useSafeAreaInsets();
+  return (
+    <View accessibilityRole="tablist"
+      style={[{ flexDirection: "row", backgroundColor: C.paper, borderTopWidth: 1, borderTopColor: C.lineSoft, paddingTop: 8, paddingHorizontal: 6 },
+        Platform.OS === "web" ? ({ paddingBottom: "calc(10px + env(safe-area-inset-bottom))" } as any) : { paddingBottom: 10 + insets.bottom }]}>
+      {state.routes.map((route: any, i: number) => {
+        const t = tabs.find((x) => x.name === route.name);
+        if (!t) return null;
+        const focused = state.index === i;
+        const color = focused ? C.deep : C.muted;
+        return (
+          <Pressable key={route.key} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={t.title}
+            onPress={() => {
+              const e = emitter.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+              if (!focused && !e?.defaultPrevented) navigateToTab(route.key);
+            }}
+            style={(st: any) => ({ flex: 1, alignItems: "center", justifyContent: "center", gap: 4, paddingVertical: 4, minHeight: 50,
+              borderRadius: 14, backgroundColor: st.hovered ? C.tint : "transparent", transform: [{ scale: st.pressed ? 0.94 : 1 }] })}>
+            <Icon name={t.icon} color={color} size={24} weight={focused ? "fill" : "light"} />
+            <Text numberOfLines={1} style={{ fontFamily: focused ? F.semi : F.medium, fontSize: 12, lineHeight: 16, color }}>{t.title}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+export function RoleTabs({ tabs, base }: { tabs: TabDef[]; base: string }) {
   // Wide web screens: no bottom bar, a floating top bar with a menu dropdown instead.
   const wide = Platform.OS === "web" && useWindowDimensions().width >= 1024;
   return (
     <Tabs
+      tabBar={(props) => (wide ? null : <BottomBar state={props.state} emitter={props.emitter} navigateToTab={props.navigateToTab} tabs={tabs} />)}
       screenOptions={{
         headerShown: wide,
         header: () => <TopBar base={base} items={tabs} />,
-        headerTransparent: false,
-        tabBarActiveTintColor: C.deep,
-        tabBarInactiveTintColor: "#6F7968",
-        // Height grows with the home-indicator inset so labels never clip.
-        // On web the inset comes straight from CSS env() (home indicator in the iOS web app); native uses the measured inset.
-        tabBarStyle: wide ? { display: "none" } : Platform.OS === "web"
-          ? ({ backgroundColor: C.paper, borderTopColor: C.lineSoft, height: "calc(74px + env(safe-area-inset-bottom))", paddingTop: 8, paddingBottom: "calc(14px + env(safe-area-inset-bottom))" } as any)
-          : { backgroundColor: C.paper, borderTopColor: C.lineSoft, height: 72 + insets.bottom, paddingTop: 8, paddingBottom: 12 + insets.bottom },
-        tabBarLabelStyle: { fontFamily: F.medium, fontSize: 12, lineHeight: 18, marginTop: 2 },
-        tabBarItemStyle: { paddingVertical: 2 },
         sceneStyle: { backgroundColor: C.bg },
       }}
     >
-      {tabs.map((t) => (
-        <Tabs.Screen key={t.name} name={t.name}
-          options={{ title: t.title, tabBarIcon: ({ color, focused }) => <Icon name={t.icon} color={color as string} size={23} weight={focused ? "fill" : "light"} /> }} />
-      ))}
+      {tabs.map((t) => <Tabs.Screen key={t.name} name={t.name} options={{ title: t.title }} />)}
     </Tabs>
   );
 }
