@@ -1,7 +1,7 @@
 // Web: marketing site. Native: straight into the app.
 import { Redirect, router } from "expo-router";
 import Head from "expo-router/head";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Animated, Image, Linking, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { Backdrop } from "@/components/backdrop";
 import { homeFor, useAuth } from "@/lib/auth";
@@ -59,6 +59,23 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   const y = useRef(new Animated.Value(0)).current;
   const typeShift = y.interpolate({ inputRange: [0, 700], outputRange: [0, -120], extrapolate: "clamp" });
   const peopleShift = y.interpolate({ inputRange: [0, 700], outputRange: [0, -40], extrapolate: "clamp" });
+  // Web: drive the parallax from a native scroll listener so it moves in the same frame as the page.
+  // (RN-web's throttled onScroll lags a frame behind and makes the hero judder.)
+  const web = Platform.OS === "web";
+  const scrollRef = useRef<any>(null), typeRef = useRef<any>(null), peopleRef = useRef<any>(null);
+  useEffect(() => {
+    if (!web) return;
+    const node: HTMLElement | null = scrollRef.current?.getScrollableNode?.() ?? null;
+    if (!node) return;
+    const apply = () => {
+      const k = Math.min(node.scrollTop, 700) / 700;
+      if (typeRef.current) typeRef.current.style.transform = `translate3d(0,${-120 * k}px,0)`;
+      if (peopleRef.current) peopleRef.current.style.transform = `translate3d(0,${-40 * k}px,0)`;
+    };
+    node.addEventListener("scroll", apply, { passive: true });
+    apply();
+    return () => node.removeEventListener("scroll", apply);
+  }, [web]);
 
   const heroText = (
             <Reveal style={{ width: wide ? textCol : "100%", gap: wide ? 24 : 18, zIndex: 3 }}>
@@ -74,7 +91,7 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   );
   const heroVisual = (
             <View style={{ flex: 1, alignItems: "center", justifyContent: "center", alignSelf: wide ? "stretch" : undefined, paddingBottom: wide ? 0 : 8 }}>
-              <Animated.View style={{ transform: [{ translateY: typeShift }] }}>
+              <Animated.View ref={typeRef} style={web ? { willChange: "transform" } as any : { transform: [{ translateY: typeShift }] }}>
               <Reveal delay={120} style={{ alignItems: "center" }}>
                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                   {["CARE THAT", "COMES", "HOME"].map((w) => (
@@ -84,8 +101,8 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
               </Reveal>
               </Animated.View>
               <Reveal delay={260} style={{ position: "absolute", bottom: wide ? Math.max(0, (height - 210 - huge * 2.9) / 2) - 6 : -8, alignItems: "center" }}>
-                <Animated.Image source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
-                  style={{ width: huge * 1.9, height: huge * 1.9 * (858 / 654), transform: [{ translateY: peopleShift }] }} resizeMode="contain" />
+                <Animated.Image ref={peopleRef} source={HERO} accessibilityLabel="An elderly woman in a saree walking arm in arm with her nurse"
+                  style={{ width: huge * 1.9, height: huge * 1.9 * (858 / 654), ...(web ? { willChange: "transform" } as any : { transform: [{ translateY: peopleShift }] }) }} resizeMode="contain" />
               </Reveal>
             </View>
   );
@@ -93,8 +110,8 @@ function Landing({ signedIn, home }: { signedIn: boolean; home: string }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
     <Backdrop />
-    <Animated.ScrollView style={{ flex: 1 }} contentContainerStyle={{ minHeight: "100%" }} scrollEventThrottle={16}
-      onScroll={Animated.event([{ nativeEvent: { contentOffset: { y } } }], { useNativeDriver: false })}>
+    <Animated.ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ minHeight: "100%" }} scrollEventThrottle={16}
+      onScroll={web ? undefined : Animated.event([{ nativeEvent: { contentOffset: { y } } }], { useNativeDriver: false })}>
       <Head>
         <title>CareBridge: Trusted Elder Care at Home</title>
         <meta name="description" content="Find verified caregivers and nurses for your parents in India, organise their medical records with AI, and follow every visit live." />
