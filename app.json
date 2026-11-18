@@ -52,6 +52,15 @@
         {
           "photosPermission": "CareBridge lets you upload photos of prescriptions and reports."
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/mark.png",
+          "imageWidth": 140,
+          "resizeMode": "contain",
+          "backgroundColor": "#E5E8CE"
+        }
       ]
     ],
     "scheme": "carebridge",
@@ -66,11 +75,6 @@
         "projectId": "89249618-9970-48a0-93f3-a8b797be8a33"
       }
     },
-    "owner": "nihalayoob",
-    "splash": {
-      "image": "./assets/images/mark.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#E5E8CE"
-    }
+    "owner": "nihalayoob"
   }
 }

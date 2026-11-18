@@ -149,8 +149,17 @@ function Records({ p, owner, onChange }: { p: Patient; owner: boolean; onChange:
     }
     setBusy("Uploading…");
     try {
-      const body = await fetch(uri).then((r) => r.arrayBuffer());
       const path = `${p.id}/${Date.now()}-${name.replace(/[^\w.-]+/g, "_")}`;
+      // Web (and most Android builds) can read the file as bytes. If reading a local file:// or content://
+      // URI fails on a device, fall back to React Native's FormData file upload.
+      let body: ArrayBuffer | FormData;
+      try {
+        body = await fetch(uri).then((r) => r.arrayBuffer());
+      } catch {
+        const form = new FormData();
+        form.append("file", { uri, name, type: mime } as any);
+        body = form;
+      }
       const up = await supabase.storage.from("medical-docs").upload(path, body, { contentType: mime });
       if (up.error) throw up.error;
       const { data: doc, error } = await supabase.from("documents")
