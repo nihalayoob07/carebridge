@@ -139,10 +139,15 @@ export default function VisitScreen() {
                 </Pressable>
               ))}
             </Card>
-            <Row style={{ alignItems: "flex-end" }}>
-              <View style={{ flex: 1 }}><Input label="Add a task" value={newTask} onChangeText={setNewTask} placeholder="Evening walk…" /></View>
-              <Button small title="Add" icon="add" onPress={() => { if (newTask.trim()) { save({ tasks: [...open.tasks, { label: newTask.trim(), done: false }] }); setNewTask(""); } }} />
-            </Row>
+            {/* Label above; input and button share one row and one height. */}
+            <View style={{ gap: 6 }}>
+              <T v="small" style={{ fontFamily: F.medium, color: C.ink }}>Add a task</T>
+              <Row gap={10} style={{ alignItems: "stretch" }}>
+                <View style={{ flex: 1 }}><Input value={newTask} onChangeText={setNewTask} placeholder="Evening walk…" accessibilityLabel="Add a task"
+                  onSubmitEditing={() => { if (newTask.trim()) { save({ tasks: [...open.tasks, { label: newTask.trim(), done: false }] }); setNewTask(""); } }} /></View>
+                <Button title="Add" icon="add" style={{ alignSelf: "stretch", minHeight: 0 }} onPress={() => { if (newTask.trim()) { save({ tasks: [...open.tasks, { label: newTask.trim(), done: false }] }); setNewTask(""); } }} />
+              </Row>
+            </View>
           </Section>
 
           <Section title="Vitals">

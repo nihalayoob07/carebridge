@@ -27,7 +27,7 @@ export function BackHeader({ title, right }: { title?: string; right?: ReactNode
         </View>
         <T v="strong" style={{ fontSize: 15 }}>{title ?? "Back"}</T>
       </Pressable>
-      {right}
+      {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
     </Row>
   );
 }

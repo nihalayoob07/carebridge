@@ -379,14 +379,15 @@ export function Loading({ rows = 3 }: { rows?: number }) {
 }
 
 export function Header({ eyebrow, title, right }: { eyebrow?: string; title: string; right?: ReactNode }) {
+  // The right-hand action lines up with the title line, not the eyebrow + title block.
   return (
-    <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8, marginTop: 8 }}>
-      <View style={{ flex: 1, gap: 10, minWidth: 0 }}>
-        {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-        <T v="h1">{title}</T>
-      </View>
-      {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
-    </Row>
+    <View style={{ gap: 10, marginBottom: 8, marginTop: 8 }}>
+      {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+      <Row style={{ justifyContent: "space-between" }}>
+        <T v="h1" style={{ flex: 1, minWidth: 0 }}>{title}</T>
+        {right ? <View style={{ alignSelf: "center" }}>{right}</View> : null}
+      </Row>
+    </View>
   );
 }
 
